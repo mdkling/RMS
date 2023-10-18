@@ -115,6 +115,7 @@ void pengumPh(void);
 void pengumPhn(void);
 void pengumAbs(void);
 void pengumDiv(void);
+void pengumMod(void);
 void pengumFree(void);
 void pengumZalloc(void);
 void copyBackward(void *src, void* dst, u32 size);
@@ -258,13 +259,13 @@ typedef struct TimerMemMap {
 } TimerMemMap;
 
 typedef struct Tree {
-	struct Tree *next[2];
-	void        *value;
-	u16          type;
-	u16          tClass;
-	u8           level;
-	u8           keyLen;
-	u8           key[4];
+	struct Tree	*next[2];
+	void		*value;
+	u8		type;
+	u8		tClass;
+	u8		level;
+	u8		keyLen;
+	u8		key[4];
 } Tree;
 
 typedef struct Word {

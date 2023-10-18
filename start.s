@@ -652,9 +652,13 @@ asmDiv: ;@ r0 = DIVISOR r1 = DIVIDEND
 	bx   lr
 
 .thumb_func
-.global asmModSM
-asmModSM:
-	pop		{W}
+.global pengumMod
+pengumMod:
+	push	{r6,r7,lr}
+	pop	{r0,r1}
+	bl	asmMod
+	movs	r7, r0
+	pop	{pc}
 .balign 2
 .code 16
 .thumb_func

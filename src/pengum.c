@@ -258,6 +258,14 @@ armOr(u32 dest, u32 arg1)
 }
 
 static u32
+armXor(u32 dest, u32 arg1)
+{
+	u32 code = 0x4040;
+	code += dest + (arg1 << 3);
+	return code;
+}
+
+static u32
 armNeg(u32 dest, u32 arg1)
 {
 	u32 code = 0x4240;
@@ -565,6 +573,13 @@ compileBwOr(PengumContext *c)/*i;*/
 {
 	if (stackEffect(c, 2, 1)) { return; }
 	*c->compileCursor++ = armOr(c->stackState, c->stackState-1); 
+}
+
+/*e*/static void
+compileBwXor(PengumContext *c)/*i;*/
+{
+	if (stackEffect(c, 2, 1)) { return; }
+	*c->compileCursor++ = armXor(c->stackState, c->stackState-1); 
 }
 
 /*e*/static void
@@ -1287,6 +1302,20 @@ builtInWord3(PengumContext *c, u8 *start)/*i;*/
 	&& (start[2] == 'n') )
 	{
 		callWord(c, (u32)pengumPhn, 1, 0);
+		return start + 3;
+	}
+	if((start[0] == 'x')
+	&& (start[1] == 'o')
+	&& (start[2] == 'r') )
+	{
+		compileBwXor(c);
+		return start + 3;
+	}
+	if((start[0] == 'm')
+	&& (start[1] == 'o')
+	&& (start[2] == 'd') )
+	{
+		callWord(c, (u32)pengumMod, 2, 1);
 		return start + 3;
 	}
 	return 0;
