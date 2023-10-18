@@ -469,8 +469,6 @@ flashEntry:
 	bl	task_exec
 	b    1b
 
-.balign 2
-.code 16
 .thumb_func
 .global REBOOT
 .type REBOOT, %function

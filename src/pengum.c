@@ -1184,7 +1184,7 @@ builtInCompileWord(PengumContext *c, u8 *start, u32 length)/*i;*/
 		case 3:  return builtInWord3(c, start);
 		case 4:  return builtInWord4(c, start);
 		case 5:  return builtInWord5(c, start);
-		//~ case 6:  return builtInWord6(c, start);
+		case 6:  return builtInWord6(c, start);
 		//~ case 7:  return builtInWord7(c, start);
 		default: return 0;
 	}
@@ -1376,14 +1376,25 @@ builtInWord5(PengumContext *c, u8 *start)/*i;*/
 	}
 	return 0;
 }
-#if 0
+
 /*e*/static u8*
-builtInWord6(PengumContext *c, u8 *starth)/*i;*/
+builtInWord6(PengumContext *c, u8 *start)/*i;*/
 {
-	// struct maybe in future?
+	if((start[0] == 'r')
+	&& (start[1] == 'e')
+	&& (start[2] == 'b')
+	&& (start[3] == 'o')
+	&& (start[4] == 'o')
+	&& (start[5] == 't') )
+	{
+		mc_callRelative((u32)REBOOT, (u32)c->compileCursor);
+		c->compileCursor += 2;
+		return start + 6;
+	}
 	return 0;
 }
 
+#if 0
 /*e*/static u8*
 builtInWord7(PengumContext *c, u8 *start)/*i;*/
 {
