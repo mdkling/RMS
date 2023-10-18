@@ -627,9 +627,13 @@ endSysTimer:
 	bx lr
 
 .thumb_func
-.global asmDivSM
-asmDivSM:
-	pop		{W}
+.global pengumDiv
+pengumDiv:
+	push	{r6,r7,lr}
+	pop	{r0,r1}
+	bl	asmDiv
+	movs	r7, r0
+	pop	{pc}
 .balign 2
 .code 16
 .thumb_func

@@ -1,7 +1,5 @@
 #include "../localTypes.h"
 
-#include "../localTypes.h"
-
 #define TERM_NUM_LINES 16
 
 

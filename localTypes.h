@@ -109,6 +109,7 @@ long long stackMachineEnter(u32 tos, void *sp, u32 addr);
 void pengumMachineEnter(u32 addr, void *sp);
 void pengumAbs(void);
 void pengumPsn(void);
+void pengumDiv(void);
 void pengumFree(void);
 void pengumZalloc(void);
 void copyBackward(void *src, void* dst, u32 size);

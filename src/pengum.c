@@ -120,6 +120,8 @@ static const unsigned char class[] = {
 /* Fx */  ALP,ALP,ALP,ALP,ALP,ALP,ALP,ALP,ALP,ALP,ALP,ALP,ALP,TYP,TYP,TYP
 };
 
+// Section Machine Code
+
 /*e*/void
 mc_callRelative(u32 target, u32 currentAddr)/*i;*/
 {
@@ -430,7 +432,7 @@ loop:
 	byte = class[*cursor++] >> 2;
 	switch (byte)
 {
-	//~ case DIV>>2: { mc_stackDiv(); goto loop; }
+	case DIV>>2: { compileDiv(c); goto executeOrContinue; }
 	//~ case PRC>>2: { mc_stackMod(); goto loop; }
 	case STA>>2: { compileMul(c); goto executeOrContinue; }
 	//~ case LIN>>2: { mc_stackOr(); goto loop; }
@@ -550,6 +552,12 @@ compileMul(PengumContext *c)/*i;*/
 {
 	if (stackEffect(c, 2, 1)) { return; }
 	*c->compileCursor++ = armMul(c->stackState, c->stackState-1); 
+}
+
+/*e*/static void
+compileDiv(PengumContext *c)/*i;*/
+{
+	callWord(c, (u32)pengumDiv, 2, 1);
 }
 
 /*e*/static void
