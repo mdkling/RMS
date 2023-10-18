@@ -184,7 +184,6 @@ uart0processInputs(void)/*p;*/
 	{
 		//~ bufferAndSend(uart->data);
 		term_processCharacter(uart->data);
-		SomethingWasDone = 1;
 	}
 }
 
@@ -198,7 +197,6 @@ uart0processOutputs(void)/*p;*/
 	{
 		uart->data = out.b[read];
 		read = (read+1) & UART0_OUT_BUFF_MASK;
-		//~ SomethingWasDone = 1;
 	}
 	out.read = read;
 }

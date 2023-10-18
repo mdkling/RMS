@@ -1,7 +1,6 @@
 // timer.c
 #include "../localTypes.h"
 
-u32 SomethingWasDone;
 
 //~ typedef struct TimerMemMap {
 	//~ volatile u32 timeWriteHigh;
@@ -207,13 +206,10 @@ void RMS_task1(void)/*p;*/ // period*2
 /*e*/
 void RMS_task2(void)/*p;*/ // period*4
 {
-	startSysTimer();
 	// process inputs
 	uart0processInputs();
 	// process outputs
 	uart0processOutputs();
-	u32 amountOfCycles = endSysTimer();
-	if (SomethingWasDone){io_printin(amountOfCycles);SomethingWasDone=0;}
 }
 
 /*e*/

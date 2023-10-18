@@ -124,7 +124,6 @@ extern u16 testThreadData[];
 extern u16 testPrintThread[];
 extern u16 fith_defs[];
 extern u8  enter[];
-extern u32 SomethingWasDone;
 //~ typedef struct FithState FithState;
 
 void ParseFree(
