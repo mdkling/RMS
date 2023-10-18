@@ -1207,12 +1207,24 @@ builtInWord2(PengumContext *c, u8 *start)/*i;*/
 		compileBwOr(c);
 		return start + 2;
 	}
-	//~ if(    (start[0] == 'p')
-		//~ && (start[1] == 's') )
-	//~ {
-		//~ callWord((u32)fithPrints);
-		//~ return start + 2;
-	//~ }
+	if((start[0] == 'p')
+	&& (start[2] == 's') )
+	{
+		callWord(c, (u32)pengumPs, 1, 0);
+		return start + 3;
+	}
+	if((start[0] == 'p')
+	&& (start[2] == 'i') )
+	{
+		callWord(c, (u32)pengumPi, 1, 0);
+		return start + 3;
+	}
+	if((start[0] == 'p')
+	&& (start[2] == 'h') )
+	{
+		callWord(c, (u32)pengumPh, 1, 0);
+		return start + 3;
+	}
 	return 0;
 }
 
@@ -1261,6 +1273,20 @@ builtInWord3(PengumContext *c, u8 *start)/*i;*/
 	&& (start[2] == 'n') )
 	{
 		callWord(c, (u32)pengumPsn, 1, 0);
+		return start + 3;
+	}
+	if((start[0] == 'p')
+	&& (start[1] == 'i')
+	&& (start[2] == 'n') )
+	{
+		callWord(c, (u32)pengumPin, 1, 0);
+		return start + 3;
+	}
+	if((start[0] == 'p')
+	&& (start[1] == 'h')
+	&& (start[2] == 'n') )
+	{
+		callWord(c, (u32)pengumPhn, 1, 0);
 		return start + 3;
 	}
 	return 0;

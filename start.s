@@ -813,11 +813,48 @@ pengumAbs:
 	bx	lr
 
 .thumb_func
+.global pengumPs
+pengumPs:
+	push	{lr}
+	movs	r0, r7
+	bl	io_prints
+	pop	{pc}
+.thumb_func
 .global pengumPsn
 pengumPsn:
 	push	{lr}
 	movs	r0, r7
 	bl	io_printsn
+	pop	{pc}
+
+.thumb_func
+.global pengumPi
+pengumPi:
+	push	{lr}
+	movs	r0, r7
+	bl	io_printi
+	pop	{pc}
+.thumb_func
+.global pengumPin
+pengumPin:
+	push	{lr}
+	movs	r0, r7
+	bl	io_printin
+	pop	{pc}
+
+.thumb_func
+.global pengumPh
+pengumPh:
+	push	{lr}
+	movs	r0, r7
+	bl	io_printi
+	pop	{pc}
+.thumb_func
+.global pengumPhn
+pengumPhn:
+	push	{lr}
+	movs	r0, r7
+	bl	io_printhn
 	pop	{pc}
 
 .thumb_func
