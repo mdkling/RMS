@@ -367,7 +367,7 @@ memsys5Init(void)/*p;*/
 	** this is case.
 	*/
 
-	nByte = 6081*33;
+	nByte = 6144*33;
 	zByte = (u8*)START_OF_REG_RAM;
 
 	mem5.nBlock = (nByte / (ATOM_SIZE+sizeof(u8)));

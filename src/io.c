@@ -368,7 +368,7 @@ void printStackStrace(u32 *stack)/*p;*/
 	io_printhn(stack[10]);
 	io_prints("pc = ");
 	io_printhn(stack[11]);
-	//~ stack[11] = (u32)resetAllRegs;
+	stack[11] = (u32)resetAllRegs;
 	io_prints("psr= ");
 	io_printhn(stack[12]);
 	uart0processAllOutputs();

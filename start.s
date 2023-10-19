@@ -434,10 +434,7 @@ reset:
 	;@ config clocks
 	bl clocksSetup
 .global flashEntry
-.balign 2
-.code 16
 .thumb_func
-.type flashEntry, %function
 flashEntry:
 	;@ set up DMA to clear RAM
 	bl   dmaSetup
@@ -450,7 +447,7 @@ flashEntry:
 	ldr  r0, =vector_table
 	str  r0,[r1]
 	;@ set stack
-	ldr  r0,=CORE0_C_STACK  ;@INITIAL_STACK
+	ldr  r0,=END_OF_RAM  ;@INITIAL_STACK
 	msr  MSP, r0
 	;@ take devices out of reset
 	movs	r2, 1
@@ -463,8 +460,10 @@ flashEntry:
 	;@~ bl   helper_unlock
 	bl	memsys5Init
 	bl	picoInit
-	;@~ mov	r8,r8
-	;@~ mov	r8,r8
+.global resetAllRegs
+	ldr  r0,=END_OF_RAM  ;@INITIAL_STACK
+	mov  sp, r0
+resetAllRegs:
 1:	wfe
 	bl	task_exec
 	b    1b
@@ -491,7 +490,7 @@ whoisme:
 	push	{r4,r5,r6,r7,lr}
 	mov	r0, sp
 	bl	printStackStrace
-	b	REBOOT
+	;@~ b	REBOOT
 	pop	{r4,r5,r6,r7,pc}
 
 .code 16

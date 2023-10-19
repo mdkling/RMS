@@ -552,12 +552,13 @@ case RPA>>2: { if (*cursor == '{') { closeUpParams(c);cursor++;
 	if (c->blocks != 0) { goto loop; }
 	if (GET_FLAG(fError)) {
 		CLEAR_FLAG(fError);
+		resetFunctionState(c);
 	} else {
 		compileReturn(c);
 		u32 addr = (u32)finalizeFunction(c);
+		resetFunctionState(c);
 		pengumMachineEnter(addr, c->stackSaveArea);
 	}
-	resetFunctionState(c);
 	goto loop;
 }
 
