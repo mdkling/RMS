@@ -19,7 +19,7 @@ INC := $(patsubst src/%.c,inc/%.h,$(SRC))
 
 .PHONY: clean all
 
-all : dirs $(INC) $(OBJ) program.uf2
+all : dirs src/kernel.c $(INC) $(OBJ) program.uf2
 
 dirs: inc obj
 
@@ -55,11 +55,17 @@ testRun: all | $(UF2_TARGET_DIR)
 	sudo mount -t drvfs $(DRIVE): $(UF2_TARGET_DIR)
 	cp program.uf2 $(UF2_TARGET_DIR)
 
+src/kernel.c: kernel.fith tool/fith2StringConst
+	./tool/fith2StringConst kernel.fith
+
 tool/headerGenerator.c: tool/headerGenerator.re
 	re2c -W -i tool/headerGenerator.re -o tool/headerGenerator.c
 
 tool/headerGenerator: tool/headerGenerator.c
 	gcc tool/headerGenerator.c -o tool/headerGenerator -Os -Wall -Wextra -Wno-pointer-sign
+
+tool/fith2StringConst: tool/fith2StringConst.c
+	gcc tool/fith2StringConst.c -o tool/fith2StringConst -Os -Wall -Wextra -Wno-pointer-sign
 
 obj/%.o: src/%.c localTypes.h
 	$(LOCAL_TOOL_PATH)$(ARMGNU)-gcc $(COPS) -mthumb -c $< -o $@

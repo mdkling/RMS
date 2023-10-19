@@ -451,6 +451,8 @@ void picoInit(void)/*p;*/
 	xipSetup();
 	// we can now read flash addresses
 	//~ treeTest();
+	// process kernel stuff
+	pengum_compile(Gkernel);
 	// changes the mode of putty (not good)
 	//~ io_prints("\x1B[20h");
 	timer_set(0, 2500);

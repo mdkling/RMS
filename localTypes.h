@@ -435,6 +435,7 @@ extern ROMFunctions rom_func;
 extern void (*lineHandler)(u8 *in);
 
 extern u32 resetAllRegs[];
+extern char *Gkernel;
 
 void printWord(u32 data);
 //~ void io_prints(u8 *string);
