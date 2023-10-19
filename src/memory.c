@@ -337,12 +337,12 @@ memsys5Realloc(void *pPrior, int nBytes)/*p;*/
 	nBytes = memsys5Roundup(nBytes);
 	nOld = memsys5Size(pPrior);
 	if( nBytes<=nOld ){
-	return pPrior;
+		return pPrior;
 	}
 	p = zalloc(nBytes);
 	if( p ){
-	rom_func.memcpy(p, pPrior, nOld);
-	free(pPrior);
+		rom_func.memcpy(p, pPrior, nOld);
+		free(pPrior);
 	}
 	return p;
 }

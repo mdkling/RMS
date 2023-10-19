@@ -118,6 +118,8 @@ void pengumDiv(void);
 void pengumMod(void);
 void pengumFree(void);
 void pengumZalloc(void);
+void pengumRealloc(void);
+void pengumAnd(void);
 void copyBackward(void *src, void* dst, u32 size);
 void copyForward(void *src, void* dst, u32 size);
 

@@ -815,6 +815,14 @@ pengumAbs:
 	bx	lr
 
 .thumb_func
+.global pengumAnd
+pengumAnd:
+	rsbs	r7, r7, 0
+	sbcs	r7, r7
+	ands	r7, r6
+	bx	lr
+
+.thumb_func
 .global pengumPs
 pengumPs:
 	push	{lr}
@@ -873,6 +881,16 @@ pengumZalloc:
 	push	{lr}
 	movs	r0, r7
 	bl	zalloc
+	movs	r7, r0
+	pop	{pc}
+
+.thumb_func
+.global pengumRealloc
+pengumRealloc:
+	push	{lr}
+	movs	r0, r7
+	movs	r1, r6
+	bl	memsys5Realloc
 	movs	r7, r0
 	pop	{pc}
 
