@@ -107,10 +107,19 @@ void ENTER(void);
 void EXIT(void);
 long long stackMachineEnter(u32 tos, void *sp, u32 addr);
 void pengumMachineEnter(u32 addr, void *sp);
-void pengumAbs(void);
+void pengumPs(void);
 void pengumPsn(void);
+void pengumPi(void);
+void pengumPin(void);
+void pengumPh(void);
+void pengumPhn(void);
+void pengumAbs(void);
+void pengumDiv(void);
+void pengumMod(void);
 void pengumFree(void);
 void pengumZalloc(void);
+void pengumRealloc(void);
+void pengumAnd(void);
 void copyBackward(void *src, void* dst, u32 size);
 void copyForward(void *src, void* dst, u32 size);
 
@@ -252,13 +261,13 @@ typedef struct TimerMemMap {
 } TimerMemMap;
 
 typedef struct Tree {
-	struct Tree *next[2];
-	void        *value;
-	u16          type;
-	u16          tClass;
-	u8           level;
-	u8           keyLen;
-	u8           key[4];
+	struct Tree	*next[2];
+	void		*value;
+	u8		type;
+	u8		tClass;
+	u8		level;
+	u8		keyLen;
+	u8		key[4];
 } Tree;
 
 typedef struct Word {
@@ -426,6 +435,7 @@ extern ROMFunctions rom_func;
 extern void (*lineHandler)(u8 *in);
 
 extern u32 resetAllRegs[];
+extern char *Gkernel;
 
 void printWord(u32 data);
 //~ void io_prints(u8 *string);

@@ -33,11 +33,14 @@ task_exec(void)/*p;*/
 	u32 write = q.w;
 	while (read != write)
 	{
-		q.tasks[read].function(q.tasks[read].arg1, q.tasks[read].arg2);
+		void (*function)(void *arg1,void *arg2)=q.tasks[read].function;
+		void *arg1 = q.tasks[read].arg1;
+		void *arg2 = q.tasks[read].arg2;
 		read += 1;
 		if (read == 42) { read = 0; }
+		q.r = read;
+		function(arg1, arg2);
 	}
-	q.r = read;
 }
 
 #if 0

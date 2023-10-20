@@ -120,6 +120,8 @@ static const unsigned char class[] = {
 /* Fx */  ALP,ALP,ALP,ALP,ALP,ALP,ALP,ALP,ALP,ALP,ALP,ALP,ALP,TYP,TYP,TYP
 };
 
+// Section Machine Code
+
 /*e*/void
 mc_callRelative(u32 target, u32 currentAddr)/*i;*/
 {
@@ -191,6 +193,19 @@ armLdrLit(u32 dest, u32 imm)
 	return code;
 }
 
+static u32
+armAdr(u32 dest, u32 imm)
+{
+	u32 code = 0xA000;
+	if (imm > 255)
+	{
+		io_printsn("Error: string is out of range.");
+		imm = 1;
+	}
+	code += imm + (dest << 8);
+	return code;
+}
+
 /*e*/static u32
 armLdrSpOffset(u32 dest, u32 offset)/*i;*/
 {
@@ -240,6 +255,38 @@ armSubImm(u32 dest, u32 val)/*i;*/
 }
 
 static u32
+armLslsImm(u32 dest, u32 src, u32 val)
+{
+	u32 code = 0x0000;
+	code += dest + (src << 3) + ((val&0X1F) << 6);
+	return code;
+}
+
+static u32
+armLsls(u32 dest, u32 arg1)
+{
+	u32 code = 0x4080;
+	code += dest + (arg1 << 3);
+	return code;
+}
+
+static u32
+armLsrsImm(u32 dest, u32 src, u32 val)
+{
+	u32 code = 0x0800;
+	code += dest + (src << 3) + ((val&0X1F) << 6);
+	return code;
+}
+
+static u32
+armLsrs(u32 dest, u32 arg1)
+{
+	u32 code = 0x40C0;
+	code += dest + (arg1 << 3);
+	return code;
+}
+
+static u32
 armMul(u32 dest, u32 arg1)
 {
 	u32 code = 0x4340;
@@ -251,6 +298,38 @@ static u32
 armOr(u32 dest, u32 arg1)
 {
 	u32 code = 0x4300;
+	code += dest + (arg1 << 3);
+	return code;
+}
+
+static u32
+armXor(u32 dest, u32 arg1)
+{
+	u32 code = 0x4040;
+	code += dest + (arg1 << 3);
+	return code;
+}
+
+static u32
+armAnd(u32 dest, u32 arg1)
+{
+	u32 code = 0x4000;
+	code += dest + (arg1 << 3);
+	return code;
+}
+
+static u32
+armBic(u32 dest, u32 arg1)
+{
+	u32 code = 0x4380;
+	code += dest + (arg1 << 3);
+	return code;
+}
+
+static u32
+armNot(u32 dest, u32 arg1)
+{
+	u32 code = 0x43C0;
 	code += dest + (arg1 << 3);
 	return code;
 }
@@ -430,7 +509,7 @@ loop:
 	byte = class[*cursor++] >> 2;
 	switch (byte)
 {
-	//~ case DIV>>2: { mc_stackDiv(); goto loop; }
+	case DIV>>2: { compileDiv(c); goto executeOrContinue; }
 	//~ case PRC>>2: { mc_stackMod(); goto loop; }
 	case STA>>2: { compileMul(c); goto executeOrContinue; }
 	//~ case LIN>>2: { mc_stackOr(); goto loop; }
@@ -443,8 +522,8 @@ case MIN>>2: { cursor = compileMinus(c, cursor); goto executeOrContinue; }
 	//~ case COL>>2: { io_prints("Invalid starting character, aborting\n"); break; }
 	//~ case ATS>>2: { io_prints("Invalid starting character, aborting\n"); break; }
 	//~ case LPA>>2: { io_prints("Invalid starting character, aborting\n"); break; }
-	case LTH>>2: { cursor = compileLth(c, cursor); goto loop; }
-	case GTH>>2: { cursor = compileGth(c, cursor); goto loop; }
+	case LTH>>2: { cursor = compileLth(c, cursor); goto executeOrContinue; }
+	case GTH>>2: { cursor = compileGth(c, cursor); goto executeOrContinue; }
 	case EQU>>2: { cursor = compileEqu(c, cursor); goto loop; }
 	//~ case LBL>>2: { advComileStub(0); goto loop; }
 	case HAS>>2: { cursor = compileHas(c, cursor); goto loop; }
@@ -457,27 +536,29 @@ case MIN>>2: { cursor = compileMinus(c, cursor); goto executeOrContinue; }
 //~ case QMK>>2: { printStackState(c); goto loop; /*break;*/ } // printMemStats();
 case DIG>>2: { cursor = consumeNumLit(c, cursor); goto executeOrContinue; }
 case ALP>>2: { cursor = consumeAlpha(c, cursor); goto executeOrContinue; }
-	//~ case DQO>>2: { cursor = consumeStringLit(cursor); goto loop; }
-	//~ case SQO>>2: { cursor = consumeCharLit(cursor); goto loop; }
+	case DQO>>2: { cursor = captureStringLit(c, cursor); goto executeOrContinue; }
+	case SQO>>2: { u8 myChar; cursor = consumeCharLit(cursor, &myChar);
+		if (*cursor++!='\''){ printError(c,"char lit missing ending '"); }
+		compilePushVal(c, myChar); goto executeOrContinue; }
 case RPA>>2: { if (*cursor == '{') { closeUpParams(c);cursor++;
 	} else { printError(c, "Right Paren alone"); } goto loop; }
 	//~ case RBR>>2: { io_prints("Invalid starting character, aborting\n"); break; }
-	//~ case BSL>>2: { while(*cursor != '\n'){cursor++;} cursor++; goto loop; }
+	case BSL>>2: { while(*cursor!='\n'&&*cursor!=0){cursor++;} goto loop; }
 	case WSP>>2: { goto loop; }
 	case NUL>>2: { return; }
 	case BAD>>2: { printError(c, "Bad input byte detected"); goto loop; }
-	//~ case TYP>>2: { cursor = printInterpolatedString2(cursor); goto loop; }
 }
 	executeOrContinue:
 	if (c->blocks != 0) { goto loop; }
 	if (GET_FLAG(fError)) {
 		CLEAR_FLAG(fError);
+		resetFunctionState(c);
 	} else {
 		compileReturn(c);
 		u32 addr = (u32)finalizeFunction(c);
+		resetFunctionState(c);
 		pengumMachineEnter(addr, c->stackSaveArea);
 	}
-	resetFunctionState(c);
 	goto loop;
 }
 
@@ -500,6 +581,68 @@ compilePushVal(PengumContext *c, s32 val)/*i;*/
 		*(u32*)c->compileCursor = val;
 		c->compileCursor += 2;
 	}
+}
+
+/*e*/static u8*
+consumeCharLit(u8 *cursor, u8 *out)/*i;*/
+{
+	if (cursor[0] != '\\') { *out = *cursor++; return cursor; }
+	switch (cursor[1])
+	{
+		case '\"': *out = '\"'; break;
+		case '\'': *out = '\''; break;
+		case 'n' : *out = 0x0A; break;
+		case 'r' : *out = 0x0D; break;
+		case 't' : *out = 0x09; break;
+		case '\\': *out = 0x5C; break;
+		default  : *out = 0x5C; break;
+	}
+	return cursor + 2;
+}
+
+/*e*/static u8*
+consumeStringLit(u8 *start, u32 length, u8 *out)/*i;*/
+{
+	u8 *end = start + length;
+	while (start < end)
+	{
+		start = consumeCharLit(start, out++);
+	}
+	return out;
+}
+
+/*e*/static u8*
+captureStringLit(PengumContext *c, u8 *cursor)/*i;*/
+{
+	// record start of string lit
+	u8 *start = cursor;
+	// find end
+	while( (*cursor!='\"'||cursor[-1]=='\\')&&*cursor!=0){cursor++;}
+	// if 0 is encountered before closing DQO, error
+	if(*cursor==0){printError(c,"string lit missing ending (\")");return cursor;}
+	// check for stack effect
+	if (stackEffect(c, 0, 1)) { return cursor; }
+	u32 length = cursor - start;
+	// align cursor with nop
+	c->compileCursor = alignTo4Bytes(c->compileCursor);
+	// combine adr instruction and jump
+	u32 code = armAdr(c->stackState, 0) + 0xE0000000;
+	u32 *adrThenJump = (u32*)c->compileCursor;
+	c->compileCursor += 2;
+	// copy out string into instruction stream
+	u8 *out = (u8*)c->compileCursor;
+	u8 *end = consumeStringLit(start, length, out);
+	// null terminate the string
+	*end = 0;
+	if (((u32)end&1) == 0) { end[1] = 0; }
+	// calculate the length of the string in instructions
+	u32 lengthInInstrs = (end-out + 2) / 2;
+	// write out the adr and branch instruction
+	*adrThenJump = code + ((lengthInInstrs-1)<<16);
+	// increment the compile cursor
+	c->compileCursor += lengthInInstrs;
+	// return cursor past the ending DQO
+	return cursor+1;
 }
 
 /*e*/s32
@@ -537,7 +680,7 @@ compileMinus(PengumContext *c, u8 *cursor)/*i;*/
 	s32 pushedConst = checkForPushedConstant(c);
 	if (pushedConst == -1) {
 		*c->compileCursor++ =
-			armSub3(c->stackState, c->stackState, c->stackState-1); 
+			armSub3(c->stackState, c->stackState, c->stackState-1);
 		return cursor;
 	}
 	c->compileCursor -= 1;
@@ -549,14 +692,78 @@ compileMinus(PengumContext *c, u8 *cursor)/*i;*/
 compileMul(PengumContext *c)/*i;*/
 {
 	if (stackEffect(c, 2, 1)) { return; }
-	*c->compileCursor++ = armMul(c->stackState, c->stackState-1); 
+	*c->compileCursor++ = armMul(c->stackState, c->stackState-1);
+}
+
+/*e*/static void
+compileDiv(PengumContext *c)/*i;*/
+{
+	callWord(c, (u32)pengumDiv, 2, 1);
 }
 
 /*e*/static void
 compileBwOr(PengumContext *c)/*i;*/
 {
 	if (stackEffect(c, 2, 1)) { return; }
-	*c->compileCursor++ = armOr(c->stackState, c->stackState-1); 
+	*c->compileCursor++ = armOr(c->stackState, c->stackState-1);
+}
+
+/*e*/static void
+compileBwXor(PengumContext *c)/*i;*/
+{
+	if (stackEffect(c, 2, 1)) { return; }
+	*c->compileCursor++ = armXor(c->stackState, c->stackState-1);
+}
+
+/*e*/static void
+compileBwAnd(PengumContext *c)/*i;*/
+{
+	if (stackEffect(c, 2, 1)) { return; }
+	*c->compileCursor++ = armAnd(c->stackState, c->stackState-1);
+}
+
+/*e*/static void
+compileBwClear(PengumContext *c)/*i;*/
+{
+	if (stackEffect(c, 2, 1)) { return; }
+	*c->compileCursor++ = armBic(c->stackState, c->stackState-1);
+}
+
+/*e*/static void
+compileBwLeftShift(PengumContext *c)/*i;*/
+{
+	if (stackEffect(c, 2, 1)) { return; }
+	s32 pushedConst = checkForPushedConstant(c);
+	if (pushedConst == -1) {
+		*c->compileCursor++ =
+			armLsls(c->stackState, c->stackState-1);
+		return;
+	}
+	c->compileCursor -= 1;
+	*c->compileCursor++ = armLslsImm(c->stackState, c->stackState, pushedConst);
+	return;
+}
+
+/*e*/static void
+compileBwRightShift(PengumContext *c)/*i;*/
+{
+	if (stackEffect(c, 2, 1)) { return; }
+	s32 pushedConst = checkForPushedConstant(c);
+	if (pushedConst == -1) {
+		*c->compileCursor++ =
+			armLsrs(c->stackState, c->stackState-1);
+		return;
+	}
+	c->compileCursor -= 1;
+	*c->compileCursor++ = armLsrsImm(c->stackState, c->stackState, pushedConst);
+	return;
+}
+
+/*e*/static void
+compileBwNot(PengumContext *c)/*i;*/
+{
+	if (stackEffect(c, 1, 1)) { return; }
+	*c->compileCursor++ = armNot(c->stackState, c->stackState); 
 }
 
 /*e*/static void
@@ -613,14 +820,14 @@ compileLoadLocal(PengumContext *c, u32 local)/*i;*/
 compileStore32BitWord(PengumContext *c)/*i;*/
 {
 	if (stackEffect(c, 2, 0)) { return; }
-	*c->compileCursor++ = armStrOffset(c->stackState-1, c->stackState-2, 0); 
+	*c->compileCursor++ = armStrOffset(c->stackState-1, c->stackState-2, 0);
 }
 
 /*e*/static void
 compileLoad32BitWord(PengumContext *c)/*i;*/
 {
 	if (stackEffect(c, 1, 1)) { return; }
-	*c->compileCursor++ = armLdrOffset(c->stackState, c->stackState, 0); 
+	*c->compileCursor++ = armLdrOffset(c->stackState, c->stackState, 0);
 }
 
 /*e*/static void
@@ -673,6 +880,12 @@ compileLth(PengumContext *c, u8 *cursor)/*i;*/
 		compileCond(c, COND_BGE);
 		return cursor;
 	}
+	if(*cursor == '<') {
+		// bitwise shift left
+		cursor++;
+		compileBwLeftShift(c);
+		return cursor;
+	}
 	if(*cursor == '=') {
 		// less than or equals
 		if(cursor[1] == '{')
@@ -693,6 +906,12 @@ compileGth(PengumContext *c, u8 *cursor)/*i;*/
 		// greater than comparator
 		cursor++;
 		compileCond(c, COND_BLE);
+		return cursor;
+	}
+	if(*cursor == '>') {
+		// bitwise shift right
+		cursor++;
+		compileBwRightShift(c);
 		return cursor;
 	}
 	if(*cursor == '=') {
@@ -809,9 +1028,14 @@ finalizeFunction(PengumContext *c)/*i;*/
 	u16 *functionStart = c->compileBase;
 	// emit function start
 	functionStart[0] = armPush(0x100); // push lr
-	u32 pushShiftAmount = 8 - c->numParams;
+	u32 pushShiftAmt = 8 - c->numParams;
 	// push arguments here!
-	functionStart[1] = armPush(0xFF>>pushShiftAmount<<pushShiftAmount);
+	if (pushShiftAmt == 8)
+	{
+		functionStart[1] = armMov(8, 8); // issue no-op
+	} else {
+		functionStart[1] = armPush(0xFF>>pushShiftAmt<<pushShiftAmt);
+	}
 	// we do not
 	//~ u16 *cursor = &functionStart[0];
 	//~ while (cursor < c->compileCursor)
@@ -1161,8 +1385,8 @@ builtInCompileWord(PengumContext *c, u8 *start, u32 length)/*i;*/
 		case 3:  return builtInWord3(c, start);
 		case 4:  return builtInWord4(c, start);
 		case 5:  return builtInWord5(c, start);
-		//~ case 6:  return builtInWord6(c, start);
-		//~ case 7:  return builtInWord7(c, start);
+		case 6:  return builtInWord6(c, start);
+		case 7:  return builtInWord7(c, start);
 		default: return 0;
 	}
 }
@@ -1170,11 +1394,6 @@ builtInCompileWord(PengumContext *c, u8 *start, u32 length)/*i;*/
 /*e*/static u8*
 builtInWord1(PengumContext *c, u8 *start)/*i;*/
 {
-	//~ if(    (start[0] == 'p') )
-	//~ {
-		//~ mc_printExprStack();
-		//~ return start + 1;
-	//~ }
 	if(    (start[0] == 'c') )
 	{
 		c->stackState = STATE_STACK_EMPTY;
@@ -1188,8 +1407,6 @@ builtInWord1(PengumContext *c, u8 *start)/*i;*/
 	return 0;
 }
 
-
-
 /*e*/static u8*
 builtInWord2(PengumContext *c, u8 *start)/*i;*/
 {
@@ -1199,12 +1416,24 @@ builtInWord2(PengumContext *c, u8 *start)/*i;*/
 		compileBwOr(c);
 		return start + 2;
 	}
-	//~ if(    (start[0] == 'p')
-		//~ && (start[1] == 's') )
-	//~ {
-		//~ callWord((u32)fithPrints);
-		//~ return start + 2;
-	//~ }
+	if((start[0] == 'p')
+	&& (start[1] == 's') )
+	{
+		callWord(c, (u32)pengumPs, 1, 0);
+		return start + 2;
+	}
+	if((start[0] == 'p')
+	&& (start[1] == 'i') )
+	{
+		callWord(c, (u32)pengumPi, 1, 0);
+		return start + 2;
+	}
+	if((start[0] == 'p')
+	&& (start[1] == 'h') )
+	{
+		callWord(c, (u32)pengumPh, 1, 0);
+		return start + 2;
+	}
 	return 0;
 }
 
@@ -1224,7 +1453,7 @@ builtInWord3(PengumContext *c, u8 *start)/*i;*/
 	&& (start[1] == 'n')
 	&& (start[2] == 'd') )
 	{
-		//~ mc_stackLogicAnd();
+		callWord(c, (u32)pengumAnd, 2, 1);
 		return start + 3;
 	}
 	if((start[0] == 'd')
@@ -1253,6 +1482,34 @@ builtInWord3(PengumContext *c, u8 *start)/*i;*/
 	&& (start[2] == 'n') )
 	{
 		callWord(c, (u32)pengumPsn, 1, 0);
+		return start + 3;
+	}
+	if((start[0] == 'p')
+	&& (start[1] == 'i')
+	&& (start[2] == 'n') )
+	{
+		callWord(c, (u32)pengumPin, 1, 0);
+		return start + 3;
+	}
+	if((start[0] == 'p')
+	&& (start[1] == 'h')
+	&& (start[2] == 'n') )
+	{
+		callWord(c, (u32)pengumPhn, 1, 0);
+		return start + 3;
+	}
+	if((start[0] == 'x')
+	&& (start[1] == 'o')
+	&& (start[2] == 'r') )
+	{
+		compileBwXor(c);
+		return start + 3;
+	}
+	if((start[0] == 'm')
+	&& (start[1] == 'o')
+	&& (start[2] == 'd') )
+	{
+		callWord(c, (u32)pengumMod, 2, 1);
 		return start + 3;
 	}
 	return 0;
@@ -1313,30 +1570,68 @@ builtInWord5(PengumContext *c, u8 *start)/*i;*/
 	}
 	return 0;
 }
-#if 0
+
 /*e*/static u8*
-builtInWord6(PengumContext *c, u8 *starth)/*i;*/
+builtInWord6(PengumContext *c, u8 *start)/*i;*/
 {
-	// struct maybe in future?
+	if((start[0] == 'r')
+	&& (start[1] == 'e')
+	&& (start[2] == 'b')
+	&& (start[3] == 'o')
+	&& (start[4] == 'o')
+	&& (start[5] == 't') )
+	{
+		mc_callRelative((u32)REBOOT, (u32)c->compileCursor);
+		c->compileCursor += 2;
+		return start + 6;
+	}
+	if((start[0] == 'b')
+	&& (start[1] == 'w')
+	&& (start[2] == '-')
+	&& (start[3] == 'a')
+	&& (start[4] == 'n')
+	&& (start[5] == 'd') )
+	{
+		compileBwAnd(c);
+		return start + 6;
+	}
+	if((start[0] == 'b')
+	&& (start[1] == 'w')
+	&& (start[2] == '-')
+	&& (start[3] == 'c')
+	&& (start[4] == 'l')
+	&& (start[5] == 'r') )
+	{
+		compileBwClear(c);
+		return start + 6;
+	}
+	if((start[0] == 'b')
+	&& (start[1] == 'w')
+	&& (start[2] == '-')
+	&& (start[3] == 'n')
+	&& (start[4] == 'o')
+	&& (start[5] == 't') )
+	{
+		compileBwNot(c);
+		return start + 6;
+	}
 	return 0;
 }
 
 /*e*/static u8*
 builtInWord7(PengumContext *c, u8 *start)/*i;*/
 {
-	if(    (start[0] == 'r')
-		&& (start[1] == 'e')
-		&& (start[2] == 'a')
-		&& (start[3] == 'l')
-		&& (start[4] == 'l')
-		&& (start[5] == 'o')
-		&& (start[6] == 'c') )
+	if((start[0] == 'r')
+	&& (start[1] == 'e')
+	&& (start[2] == 'a')
+	&& (start[3] == 'l')
+	&& (start[4] == 'l')
+	&& (start[5] == 'o')
+	&& (start[6] == 'c') )
 	{
-		callWord((u32)fithRealloc);
+		callWord(c, (u32)pengumRealloc, 2, 1);
 		return start + 7;
 	}
 	return 0;
 }
-
-#endif
 

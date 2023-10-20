@@ -434,10 +434,7 @@ reset:
 	;@ config clocks
 	bl clocksSetup
 .global flashEntry
-.balign 2
-.code 16
 .thumb_func
-.type flashEntry, %function
 flashEntry:
 	;@ set up DMA to clear RAM
 	bl   dmaSetup
@@ -450,27 +447,25 @@ flashEntry:
 	ldr  r0, =vector_table
 	str  r0,[r1]
 	;@ set stack
-	ldr  r0,=CORE0_C_STACK  ;@INITIAL_STACK
+	ldr  r0,=END_OF_RAM  ;@INITIAL_STACK
 	msr  MSP, r0
 	;@ take devices out of reset
 	movs	r2, 1
 	bl	resetIOBank
 	bl	configUART
 	bl	setZeroWait ;@ until there is enough time to rip through both stacks
-	
-	
-	bl	printHelloBanner
 	;@~ bl   helper_unlock
 	bl	memsys5Init
 	bl	picoInit
-	;@~ mov	r8,r8
-	;@~ mov	r8,r8
+	bl	printHelloBanner
+.global resetAllRegs
+	ldr  r0,=END_OF_RAM  ;@INITIAL_STACK
+	mov  sp, r0
+resetAllRegs:
 1:	wfe
 	bl	task_exec
 	b    1b
 
-.balign 2
-.code 16
 .thumb_func
 .global REBOOT
 .type REBOOT, %function
@@ -493,7 +488,7 @@ whoisme:
 	push	{r4,r5,r6,r7,lr}
 	mov	r0, sp
 	bl	printStackStrace
-	b	REBOOT
+	;@~ b	REBOOT
 	pop	{r4,r5,r6,r7,pc}
 
 .code 16
@@ -627,9 +622,13 @@ endSysTimer:
 	bx lr
 
 .thumb_func
-.global asmDivSM
-asmDivSM:
-	pop		{W}
+.global pengumDiv
+pengumDiv:
+	push	{r6,r7,lr}
+	pop	{r0,r1}
+	bl	asmDiv
+	movs	r7, r0
+	pop	{pc}
 .balign 2
 .code 16
 .thumb_func
@@ -648,9 +647,13 @@ asmDiv: ;@ r0 = DIVISOR r1 = DIVIDEND
 	bx   lr
 
 .thumb_func
-.global asmModSM
-asmModSM:
-	pop		{W}
+.global pengumMod
+pengumMod:
+	push	{r6,r7,lr}
+	pop	{r0,r1}
+	bl	asmMod
+	movs	r7, r0
+	pop	{pc}
 .balign 2
 .code 16
 .thumb_func
@@ -809,11 +812,56 @@ pengumAbs:
 	bx	lr
 
 .thumb_func
+.global pengumAnd
+pengumAnd:
+	rsbs	r7, r7, 0
+	sbcs	r7, r7
+	ands	r7, r6
+	bx	lr
+
+.thumb_func
+.global pengumPs
+pengumPs:
+	push	{lr}
+	movs	r0, r7
+	bl	io_prints
+	pop	{pc}
+.thumb_func
 .global pengumPsn
 pengumPsn:
 	push	{lr}
 	movs	r0, r7
 	bl	io_printsn
+	pop	{pc}
+
+.thumb_func
+.global pengumPi
+pengumPi:
+	push	{lr}
+	movs	r0, r7
+	bl	io_printi
+	pop	{pc}
+.thumb_func
+.global pengumPin
+pengumPin:
+	push	{lr}
+	movs	r0, r7
+	bl	io_printin
+	pop	{pc}
+
+.thumb_func
+.global pengumPh
+pengumPh:
+	push	{lr}
+	movs	r0, r7
+	bl	io_printi
+	pop	{pc}
+.thumb_func
+.global pengumPhn
+pengumPhn:
+	push	{lr}
+	movs	r0, r7
+	bl	io_printhn
 	pop	{pc}
 
 .thumb_func
@@ -830,6 +878,16 @@ pengumZalloc:
 	push	{lr}
 	movs	r0, r7
 	bl	zalloc
+	movs	r7, r0
+	pop	{pc}
+
+.thumb_func
+.global pengumRealloc
+pengumRealloc:
+	push	{lr}
+	movs	r0, r7
+	movs	r1, r6
+	bl	memsys5Realloc
 	movs	r7, r0
 	pop	{pc}
 

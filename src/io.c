@@ -13,9 +13,9 @@ typedef struct {
 } Uart0Output;
 
 static Uart0Output out;
-static u8       uart0Buffer[256];
-static u32      uart0BuffStartIndex;
-static u32      uart0BuffIndex;
+//~ static u8       uart0Buffer[256];
+//~ static u32      uart0BuffStartIndex;
+//~ static u32      uart0BuffIndex;
 
 /*e*/
 s32
@@ -61,9 +61,9 @@ s2i(u8 *b, u8 **e)/*p;*/
 	return result;
 }
 
-/*e*/
+#if 0
 s32
-s2iOld(u8 *b)/*p;*/
+s2iOld(u8 *b)
 {
 	s32 result     = 0;
 	s32 isNegative = 1;
@@ -103,6 +103,7 @@ s2iOld(u8 *b)/*p;*/
 	
 	return result;
 }
+#endif
 
 /*e*/
 u8*
@@ -156,25 +157,25 @@ i2sh(s32 in, u8 *out)/*p;*/
 	return out;
 }
 
-static void bufferAndSend(u32 data)
-{
-	uart0Buffer[uart0BuffIndex++] = data;
-	if (data == 0x0D || uart0BuffIndex == 254) // finished line
-	{
-		// add new line and null terminate
-		uart0Buffer[uart0BuffIndex++] = '\n';
-		uart0Buffer[uart0BuffIndex++] = 0;
-		u8* startOfLine = &uart0Buffer[uart0BuffStartIndex];
-		if (uart0BuffIndex > 128)
-		{
-			uart0BuffStartIndex = 0;
-			uart0BuffIndex = 0;
-		} else {
-			uart0BuffStartIndex = uart0BuffIndex;
-		}
-		task_enqueue(pengum_compile, startOfLine, 0);
-	}
-}
+//~ static void bufferAndSend(u32 data)
+//~ {
+	//~ uart0Buffer[uart0BuffIndex++] = data;
+	//~ if (data == 0x0D || uart0BuffIndex == 254) // finished line
+	//~ {
+		//~ // add new line and null terminate
+		//~ uart0Buffer[uart0BuffIndex++] = '\n';
+		//~ uart0Buffer[uart0BuffIndex++] = 0;
+		//~ u8* startOfLine = &uart0Buffer[uart0BuffStartIndex];
+		//~ if (uart0BuffIndex > 128)
+		//~ {
+			//~ uart0BuffStartIndex = 0;
+			//~ uart0BuffIndex = 0;
+		//~ } else {
+			//~ uart0BuffStartIndex = uart0BuffIndex;
+		//~ }
+		//~ task_enqueue(pengum_compile, startOfLine, 0);
+	//~ }
+//~ }
 
 /*e*/void
 uart0processInputs(void)/*p;*/
@@ -373,7 +374,7 @@ void printStackStrace(u32 *stack)/*p;*/
 	io_printhn(stack[10]);
 	io_prints("pc = ");
 	io_printhn(stack[11]);
-	//~ stack[11] = (u32)resetAllRegs;
+	stack[11] = (u32)resetAllRegs;
 	io_prints("psr= ");
 	io_printhn(stack[12]);
 	io_prints("\n");			//newline to visually separate dump from fresh reset
@@ -456,10 +457,16 @@ void picoInit(void)/*p;*/
 	rom_func._flash_flush_cache();
 	xipSetup();
 	// we can now read flash addresses
+	// set timer 0 to kick off RMS
+	timer_set(0, 10);
 	//~ treeTest();
+	// process fith kernel stuff
+	startSysTimer();
+	pengum_compile(Gkernel);
+	io_printi(asmDiv(120, endSysTimer()));
+	io_printsn(" microseconds to compile/execute the fith kernel.");
 	// changes the mode of putty (not good)
 	//~ io_prints("\x1B[20h");
-	timer_set(0, 2500);
 	//~ timer_set(0, 2500);
 	//~ setAlarmClockValue(2500);
 	//~ timer_set(1, 5*1000*1000);
