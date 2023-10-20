@@ -454,12 +454,10 @@ flashEntry:
 	bl	resetIOBank
 	bl	configUART
 	bl	setZeroWait ;@ until there is enough time to rip through both stacks
-	
-	
-	bl	printHelloBanner
 	;@~ bl   helper_unlock
 	bl	memsys5Init
 	bl	picoInit
+	bl	printHelloBanner
 .global resetAllRegs
 	ldr  r0,=END_OF_RAM  ;@INITIAL_STACK
 	mov  sp, r0

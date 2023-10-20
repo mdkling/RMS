@@ -634,6 +634,7 @@ captureStringLit(PengumContext *c, u8 *cursor)/*i;*/
 	u8 *end = consumeStringLit(start, length, out);
 	// null terminate the string
 	*end = 0;
+	if (((u32)end&1) == 0) { end[1] = 0; }
 	// calculate the length of the string in instructions
 	u32 lengthInInstrs = (end-out + 2) / 2;
 	// write out the adr and branch instruction

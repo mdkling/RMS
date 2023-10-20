@@ -450,12 +450,16 @@ void picoInit(void)/*p;*/
 	rom_func._flash_flush_cache();
 	xipSetup();
 	// we can now read flash addresses
+	// set timer 0 to kick off RMS
+	timer_set(0, 10);
 	//~ treeTest();
-	// process kernel stuff
+	// process fith kernel stuff
+	startSysTimer();
 	pengum_compile(Gkernel);
+	io_printi(asmDiv(120, endSysTimer()));
+	io_printsn(" microseconds to compile/execute the fith kernel.");
 	// changes the mode of putty (not good)
 	//~ io_prints("\x1B[20h");
-	timer_set(0, 2500);
 	//~ timer_set(0, 2500);
 	//~ setAlarmClockValue(2500);
 	//~ timer_set(1, 5*1000*1000);
