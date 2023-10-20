@@ -328,7 +328,13 @@ void io_ledToggle(void)/*p;*/
 /*e*/
 void printHelloBanner(void)/*p;*/
 {
-	io_prints("Hello!\n>");
+	io_prints("Hello from rms-kling!\n");
+	io_prints("Built on ");
+	io_prints(__DATE__);
+	io_prints(" at ");
+	io_prints(__TIME__);
+	io_prints("\n>");
+
 }
 
 /*e*/
@@ -370,6 +376,7 @@ void printStackStrace(u32 *stack)/*p;*/
 	//~ stack[11] = (u32)resetAllRegs;
 	io_prints("psr= ");
 	io_printhn(stack[12]);
+	io_prints("\n");			//newline to visually separate dump from fresh reset
 	uart0processAllOutputs();
 }
 
