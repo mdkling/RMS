@@ -42,7 +42,6 @@ static PengumContext c =
 };
 
 #define StringLitBuff_SIZE (1<<10)
-#define StringLitBuff_MASK (StringLitBuff_SIZE-1)
 typedef struct {
 	u32 w;
 	u8	b[StringLitBuff_SIZE];
