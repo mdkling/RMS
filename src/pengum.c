@@ -41,6 +41,14 @@ static PengumContext c =
 	.stackState = STATE_STACK_EMPTY,
 };
 
+#define StringLitBuff_SIZE (1<<10)
+#define StringLitBuff_MASK (StringLitBuff_SIZE-1)
+typedef struct {
+	u32 w;
+	u8	b[StringLitBuff_SIZE];
+} StringLitBuff;
+static StringLitBuff scratch;
+
 enum{
 	fError,
 	fInParams,
@@ -620,6 +628,17 @@ captureStringLit(PengumContext *c, u8 *cursor)/*i;*/
 	while( (*cursor!='\"'||cursor[-1]=='\\')&&*cursor!=0){cursor++;}
 	// if 0 is encountered before closing DQO, error
 	if(*cursor==0){printError(c,"string lit missing ending (\")");return cursor;}
+	if (c->currentWord == 0)
+	{
+		u32 length = cursor - start;
+		if ((length+1)>(StringLitBuff_SIZE-scratch.w)){ scratch.w = 0;}
+		u8 *out = &scratch.b[scratch.w];
+		scratch.w = consumeStringLit(start, length, out) - scratch.b;
+		scratch.b[scratch.w++] = 0;
+		compilePushVal(c, (s32)out);
+		// return cursor past the ending DQO
+		return cursor+1;
+	}
 	// check for stack effect
 	if (stackEffect(c, 0, 1)) { return cursor; }
 	u32 length = cursor - start;
