@@ -473,11 +473,12 @@ REBOOT:
 	;@~ ldr r0,=PSM_WDSEL ;@ ENABLE MASS RESET
 	;@~ ldr r1,=0x1FFFC
 	;@~ str r1,[r0]
-	ldr  r0,=WATCHDOG_CNTRL ;@ reboot
-	movs r1, 1
-	lsls r1, 31
-	str r1,[r0]
-	b purgatory
+	bl	uart0processAllOutputs
+	ldr	r0,=WATCHDOG_CNTRL ;@ reboot
+	movs	r1, 1
+	lsls	r1, 31
+	str	r1,[r0]
+	b	purgatory
 
 .balign 2
 .code 16
