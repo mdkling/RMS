@@ -113,6 +113,7 @@ void pengumPi(void);
 void pengumPin(void);
 void pengumPh(void);
 void pengumPhn(void);
+void pengumPc(void);
 void pengumAbs(void);
 void pengumDiv(void);
 void pengumMod(void);

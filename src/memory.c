@@ -377,7 +377,7 @@ memsys5Init(void)/*p;*/
 	for(ii=0; ii<=LOGMAX; ii++){
 		mem5.aiFreelist[ii] = -1;
 	}
-	mem5.aiFreelist[13] = 0;
+	mem5.aiFreelist[LOGMAX] = 0;
 	iOffset = 0;
 	for(ii=LOGMAX; ii>=0; ii--){
 		int nAlloc = (1<<ii);

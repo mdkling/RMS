@@ -855,7 +855,7 @@ pengumPin:
 pengumPh:
 	push	{lr}
 	movs	r0, r7
-	bl	io_printi
+	bl	io_printh
 	pop	{pc}
 .thumb_func
 .global pengumPhn
@@ -863,6 +863,14 @@ pengumPhn:
 	push	{lr}
 	movs	r0, r7
 	bl	io_printhn
+	pop	{pc}
+
+.thumb_func
+.global pengumPc
+pengumPc:
+	push	{lr}
+	movs	r0, r7
+	bl	uart0_outByte
 	pop	{pc}
 
 .thumb_func

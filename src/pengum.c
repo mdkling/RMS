@@ -42,7 +42,6 @@ static PengumContext c =
 };
 
 #define StringLitBuff_SIZE (1<<10)
-#define StringLitBuff_MASK (StringLitBuff_SIZE-1)
 typedef struct {
 	u32 w;
 	u8	b[StringLitBuff_SIZE];
@@ -1451,6 +1450,12 @@ builtInWord2(PengumContext *c, u8 *start)/*i;*/
 	&& (start[1] == 'h') )
 	{
 		callWord(c, (u32)pengumPh, 1, 0);
+		return start + 2;
+	}
+	if((start[0] == 'p')
+	&& (start[1] == 'c') )
+	{
+		callWord(c, (u32)pengumPc, 1, 0);
 		return start + 2;
 	}
 	return 0;
