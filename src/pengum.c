@@ -1452,6 +1452,12 @@ builtInWord2(PengumContext *c, u8 *start)/*i;*/
 		callWord(c, (u32)pengumPh, 1, 0);
 		return start + 2;
 	}
+	if((start[0] == 'p')
+	&& (start[1] == 'c') )
+	{
+		callWord(c, (u32)pengumPc, 1, 0);
+		return start + 2;
+	}
 	return 0;
 }
 
