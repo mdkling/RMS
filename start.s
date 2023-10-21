@@ -874,6 +874,14 @@ pengumPc:
 	pop	{pc}
 
 .thumb_func
+.global pengumPch
+pengumPch:
+	push	{lr}
+	movs	r0, r7
+	bl	io_printch
+	pop	{pc}
+
+.thumb_func
 .global pengumFree
 pengumFree:
 	push	{lr}

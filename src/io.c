@@ -138,11 +138,11 @@ i2s(s32 in, u8 *out)/*p;*/
 
 /*e*/
 u8*
-i2sh(s32 in, u8 *out)/*p;*/
+i2sh(s32 in, u8 *out, u32 numDigits)/*p;*/
 {
 	// generate number directly in output
 	s32 byte;
-	for (s32 x = 0; x < 8; x++)
+	for (s32 x = 8-numDigits; x < 8; x++)
 	{
 		byte = (in>>((7-x)*4))&0x0F;
 		byte += '0';
@@ -150,9 +150,8 @@ i2sh(s32 in, u8 *out)/*p;*/
 		{
 			byte += 7;
 		}
-		out[x] = byte;
+		*out++ = byte;
 	}
-	out += 8;
 	*out = 0;
 	return out;
 }
@@ -283,7 +282,7 @@ void io_printh(s32 in)/*p;*/
 	u8 number[16];
 	number[0] = '0';
 	number[1] = 'x';
-	i2sh(in, &number[2]);
+	i2sh(in, &number[2], 8);
 	io_prints(number);
 }
 
@@ -292,6 +291,14 @@ void io_printhn(s32 in)/*p;*/
 {
 	io_printh(in);
 	uart0_outByte('\n');
+}
+
+/*e*/
+void io_printch(s32 in)/*p;*/
+{
+	u8 number[8];
+	i2sh(in, &number[0], 2);
+	io_prints(number);
 }
 
 /*e*/
