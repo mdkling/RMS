@@ -1522,6 +1522,13 @@ builtInWord3(PengumContext *c, u8 *start)/*i;*/
 		callWord(c, (u32)pengumPhn, 1, 0);
 		return start + 3;
 	}
+	if((start[0] == 'p')
+	&& (start[1] == 'c')
+	&& (start[2] == 'h') )
+	{
+		callWord(c, (u32)pengumPch, 1, 0);
+		return start + 3;
+	}
 	if((start[0] == 'x')
 	&& (start[1] == 'o')
 	&& (start[2] == 'r') )
