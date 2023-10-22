@@ -214,9 +214,8 @@ uart0processAllOutputs(void)/*p;*/
 /*e*/void
 uart0_outByte(u32 byte)/*p;*/
 {
-	// hard to output an error in the output
-	// TODO currently just do nothing
-	if (out.write + 1 == out.read) { }// record error here 
+	// busy wait if full
+	if (out.write + 1 == out.read) { io_busyWait(); }
 	asm("CPSID i");  // disable interrupts
 	printAnotherChar:
 	out.b[out.write] = byte;

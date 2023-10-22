@@ -222,6 +222,22 @@ armLdrSpOffset(u32 dest, u32 offset)/*i;*/
 }
 
 static u32
+armLdrByteOffset(u32 dest, u32 src, u32 offset)
+{
+	u32 code = 0x7800;
+	code += dest + (src << 3) + (offset << 6);
+	return code;
+}
+
+static u32
+armLdrHwOffset(u32 dest, u32 src, u32 offset)
+{
+	u32 code = 0x8800;
+	code += dest + (src << 3) + (offset << 6);
+	return code;
+}
+
+static u32
 armLdrOffset(u32 dest, u32 src, u32 offset)
 {
 	u32 code = 0x6800;
@@ -516,7 +532,8 @@ loop:
 	byte = class[*cursor++] >> 2;
 	switch (byte)
 {
-	case DIV>>2: { compileDiv(c); goto executeOrContinue; }
+	case DIV>>2: { if(*cursor == '/') {goto comment;}
+		compileDiv(c); goto executeOrContinue; }
 	//~ case PRC>>2: { mc_stackMod(); goto loop; }
 	case STA>>2: { compileMul(c); goto executeOrContinue; }
 	//~ case LIN>>2: { mc_stackOr(); goto loop; }
@@ -550,7 +567,7 @@ case ALP>>2: { cursor = consumeAlpha(c, cursor); goto executeOrContinue; }
 case RPA>>2: { if (*cursor == '{') { closeUpParams(c);cursor++;
 	} else { printError(c, "Right Paren alone"); } goto loop; }
 	//~ case RBR>>2: { io_prints("Invalid starting character, aborting\n"); break; }
-	case BSL>>2: { while(*cursor!='\n'&&*cursor!=0){cursor++;} goto loop; }
+	case BSL>>2: { comment: while(*cursor!='\n'&&*cursor!=0){cursor++;} goto loop; }
 	case WSP>>2: { goto loop; }
 	case NUL>>2: { return; }
 	case BAD>>2: { printError(c, "Bad input byte detected"); goto loop; }
@@ -842,6 +859,20 @@ compileStore32BitWord(PengumContext *c)/*i;*/
 }
 
 /*e*/static void
+compileLoad8BitWord(PengumContext *c)/*i;*/
+{
+	if (stackEffect(c, 1, 1)) { return; }
+	*c->compileCursor++ = armLdrByteOffset(c->stackState, c->stackState, 0);
+}
+
+/*e*/static void
+compileLoad16BitWord(PengumContext *c)/*i;*/
+{
+	if (stackEffect(c, 1, 1)) { return; }
+	*c->compileCursor++ = armLdrHwOffset(c->stackState, c->stackState, 0);
+}
+
+/*e*/static void
 compileLoad32BitWord(PengumContext *c)/*i;*/
 {
 	if (stackEffect(c, 1, 1)) { return; }
@@ -1096,6 +1127,18 @@ compileBng(PengumContext *c, u8 *cursor)/*i;*/
 /*e*/static u8*
 compileDol(PengumContext *c, u8 *cursor)/*i;*/
 {
+	if (cursor[0] == 'c')
+	{
+		// handle else statement
+		compileLoad8BitWord(c);
+		return cursor + 1;
+	}
+	if (cursor[0] == 'h')
+	{
+		// handle else statement
+		compileLoad16BitWord(c);
+		return cursor + 1;
+	}
 	compileLoad32BitWord(c);
 	return cursor;
 }
