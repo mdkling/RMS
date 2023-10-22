@@ -70,7 +70,8 @@ outputLine(u8 *doc, u8 *out)
 		}
 		doc++;
 	}
-	*out++ = ' ';
+	*out++ = '\\';
+	*out++ = 'n';
 	*out++ = '\"';
 	*out++ = '\n';
 	return out;
