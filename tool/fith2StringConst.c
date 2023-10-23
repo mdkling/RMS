@@ -57,6 +57,7 @@ static u8*
 outputLine(u8 *doc, u8 *out)
 {
 	if (*doc=='\\'||*doc=='\n'||*doc==0) { return out; }
+	if (doc[0]=='/'&&doc[1]=='/') { return out; }
 	*out++ = '\"';
 	while(*doc!='\n'&&*doc!=0)
 	{
@@ -69,7 +70,8 @@ outputLine(u8 *doc, u8 *out)
 		}
 		doc++;
 	}
-	*out++ = ' ';
+	*out++ = '\\';
+	*out++ = 'n';
 	*out++ = '\"';
 	*out++ = '\n';
 	return out;

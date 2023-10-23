@@ -285,25 +285,24 @@ void RMS_task11(void)/*p;*/ // period*2048
 volatile u32 bCounter;
 
 /*e*/
-void bProgress(void)/*p;*/
+void io_busyWait(void)/*p;*/
 {
 	bCounter = 0;
-	while(bCounter < 5*1024*1024/100)
+	while(bCounter < 256*1024)
 	{
 		bCounter++;
 	}
-	io_prints("*");
 }
 
-/*e*/
-void Background(void)/*p;*/
-{
-	u32 *intClear = (void*)PPB_INTERRUPT_CLEAR_PEND;
-	*intClear = (1<<28);
-	io_prints("\nBackground Start!\n");
-	for (u32 i = 0; i < 20; i++)
-	{
-		bProgress();
-	}
-	io_prints("\nBackground End!\n");
-}
+//~ /*e*/
+//~ void Background(void)/*p;*/
+//~ {
+	//~ u32 *intClear = (void*)PPB_INTERRUPT_CLEAR_PEND;
+	//~ *intClear = (1<<28);
+	//~ io_prints("\nBackground Start!\n");
+	//~ for (u32 i = 0; i < 20; i++)
+	//~ {
+		//~ bProgress();
+	//~ }
+	//~ io_prints("\nBackground End!\n");
+//~ }
