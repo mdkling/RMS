@@ -214,6 +214,14 @@ armAdr(u32 dest, u32 imm)
 }
 
 /*e*/static u32
+armStrSpOffset(u32 src, u32 offset)/*i;*/
+{
+	u32 code = 0x9000;
+	code += (src<<8) + (offset);
+	return code;
+}
+
+/*e*/static u32
 armLdrSpOffset(u32 dest, u32 offset)/*i;*/
 {
 	u32 code = 0x9800;
@@ -1304,13 +1312,16 @@ createVar(PengumContext *c, u8 *start, u32 length)/*i;*/
 	if (stackEffect(c, 1, 0)) { return; }
 	if (c->blocks != 0)
 	{
-		if (c->blocks->next == c->blocks)
-		{
-			createLocal(c, start, length);
-			*c->compileCursor++ = armPush(1 << (c->stackState-1));
-			return;
+		s32 localNum = createLocal(c, start, length);
+		if (c->blocks->next != c->blocks && localNum >= 0){
+			printError(c, "locals must be defined one level deep"); return;
 		}
-		printError(c, "locals can only be defined one block deep");
+		if (localNum >= 0){ // new local
+			*c->compileCursor++ = armPush(1 << (c->stackState-1));
+		} else { // update local
+			localNum = -(localNum + 1);
+			*c->compileCursor++ = armStrSpOffset(c->stackState-1, c->localsIndex-localNum-1);
+		}
 		return;
 	}
 	Tree *word  = createGlobalWord(c, start, length);
@@ -1370,17 +1381,20 @@ createWordFunction(PengumContext *c, u8 *start, u32 length)/*i;*/
 	c->flags = 0;
 }
 
-/*e*/static u32
+/*e*/static s32
 createLocal(PengumContext *c, u8 *start, u32 length)/*i;*/
 {
-	u32 localNum = c->localsIndex++;
-	Tree *word = tree_add(&c->locals, start, length, (void*)localNum);
+	s32 localNum;
+	Tree *word = tree_add(&c->locals, start, length, 0);
 	if (word)
 	{
-		printError(c, "redefinition of local that existed");
-		word->value = (void*)localNum;
+		// local already exists, return as negative num
+		localNum = (s32)word->value;
+		localNum = -localNum - 1;
 	} else {
 		word = tree_find(c->locals, start, length);
+		word->value = (void*)c->localsIndex++;
+		localNum = (s32)word->value;
 	}
 	word->type = WORD_LOCAL;
 	return localNum;
@@ -1390,7 +1404,8 @@ createLocal(PengumContext *c, u8 *start, u32 length)/*i;*/
 createParameter(PengumContext *c, u8 *start, u32 length)/*i;*/
 {
 	c->numParams++;
-	createLocal(c, start, length);
+	s32 localNum = createLocal(c, start, length);
+	if (localNum < 0) { printError(c, "parameter name used again"); }
 }
 
 /*e*/static Tree*
