@@ -65,6 +65,8 @@ enum{
 	BLOCK_WORD,
 	BLOCK_COND,
 	BLOCK_ELSE,
+	BLOCK_WHILE,
+	BLOCK_WHILE_COND,
 };
 
 enum{
@@ -1011,14 +1013,31 @@ compileHas(PengumContext *c, u8 *cursor)/*i;*/
 }
 
 /*e*/static void
+compileWhile(PengumContext *c)/*i;*/
+{
+	Block *newBlock = pushNewBlock(c, BLOCK_WHILE);
+	newBlock->target2 = c->compileCursor;
+	newBlock->enteredStackState = c->stackState;
+}
+
+/*e*/static void
 compileCond(PengumContext *c, u32 cond)/*i;*/
 {
 	if (stackEffect(c, 2, 0)) { return; }
 	compileCmp(c);
-	Block *newBlock = pushNewBlock(c, BLOCK_COND);
-	newBlock->target = c->compileCursor;
-	newBlock->cond = cond;
-	newBlock->enteredStackState = c->stackState;
+	Block *top = list_getFirst(c->blocks);
+	if (top != 0 && top->blockType == BLOCK_WHILE)
+	{
+		top->blockType = BLOCK_WHILE_COND;
+		top->target = c->compileCursor;
+		top->cond = cond;
+		top->endCondStackState = c->stackState;
+	} else {
+		Block *newBlock = pushNewBlock(c, BLOCK_COND);
+		newBlock->target = c->compileCursor;
+		newBlock->cond = cond;
+		newBlock->enteredStackState = c->stackState;
+	}
 	*c->compileCursor++ = 0;
 }
 
@@ -1229,6 +1248,25 @@ case BLOCK_ELSE:
 	*block->target = armBranch(c, c->compileCursor - block->target - 2);
 	break;
 }
+case BLOCK_WHILE: printError(c, "incomplete while block"); return;
+case BLOCK_WHILE_COND:
+{
+	if ((block->hasReturn|block->hasRepeat) == 0) // normal control flow
+	{
+		if (c->stackState != block->enteredStackState)
+		{
+			printError(c, "stack state at end of 'while' does not match starting state");
+			break;
+		}
+	}
+	u16 *branchLocation = c->compileCursor++;
+	*branchLocation = armBranch(c, block->target2 - branchLocation - 2);
+	c->stackState = block->endCondStackState;
+	*block->target = armCond(c, block->cond,
+		c->compileCursor - block->target - 2);
+	break;
+}
+
 default: printError(c, "unmatched '}'"); return;
 	}
 	free(block);
@@ -1655,6 +1693,15 @@ builtInWord5(PengumContext *c, u8 *start)/*i;*/
 	&& (start[4] == 'c') )
 	{
 		callWord(c, (u32)pengumZalloc, 1, 1);
+		return start + 5;
+	}
+	if((start[0] == 'w')
+	&& (start[1] == 'h')
+	&& (start[2] == 'i')
+	&& (start[3] == 'l')
+	&& (start[4] == 'e') )
+	{
+		compileWhile(c);
 		return start + 5;
 	}
 	return 0;

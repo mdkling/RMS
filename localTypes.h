@@ -355,6 +355,7 @@ typedef struct Block {
 	s32		endCondStackState;
 	Tree		*word;
 	u16		*target;
+	u16		*target2;
 	//~ struct Block *caseList;
 } Block;
 
