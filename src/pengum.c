@@ -1251,13 +1251,11 @@ case BLOCK_ELSE:
 case BLOCK_WHILE: printError(c, "incomplete while block"); return;
 case BLOCK_WHILE_COND:
 {
-	if ((block->hasReturn|block->hasRepeat) == 0) // normal control flow
+	if ((block->hasReturn|block->hasRepeat) == 0
+	&& c->stackState != block->enteredStackState) // normal control flow
 	{
-		if (c->stackState != block->enteredStackState)
-		{
-			printError(c, "stack state at end of 'while' does not match starting state");
-			break;
-		}
+		printError(c, "stack state at end of 'while' does not match starting state");
+		break;
 	}
 	u16 *branchLocation = c->compileCursor++;
 	*branchLocation = armBranch(c, block->target2 - branchLocation - 2);

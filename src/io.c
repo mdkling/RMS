@@ -214,14 +214,14 @@ uart0processAllOutputs(void)/*p;*/
 /*e*/void
 uart0_outByte(u32 byte)/*p;*/
 {
-	// busy wait if full
-	if (out.write + 1 == out.read) { io_busyWait(); }
-	asm("CPSID i");  // disable interrupts
 	printAnotherChar:
+	// wait if full
+	if (((out.write+1)&UART0_OUT_BUFF_MASK)==out.read){timer_sleepMs(2);}
+	asm("CPSID i");  // disable interrupts
 	out.b[out.write] = byte;
 	out.write = (out.write+1) & UART0_OUT_BUFF_MASK;
-	if (byte == '\n') { byte = '\r'; goto printAnotherChar; }
 	asm("CPSIE i"); // enable interrupts
+	if (byte == '\n') { byte = '\r'; goto printAnotherChar; }
 }
 
 /*e*/

@@ -95,7 +95,7 @@ void term_processCharacter(u32 input)/*p;*/
 		}
 		if (input == 0x0D) // end of line
 		{
-			io_prints("\n"); // restart line
+			uart0_outByte('\n'); // restart line
 			if (inputLine.cursor == 0)
 			{
 				io_prints("\r>");
@@ -162,7 +162,7 @@ void term_processCharacter(u32 input)/*p;*/
 		} else if (input == 0x44) { // left arrow
 			if (inputLine.cursor == 0) { return; }
 			inputLine.cursor--;
-			io_prints("\x08");
+			uart0_outByte('\x08');
 			return;
 		}
 	}

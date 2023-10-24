@@ -206,10 +206,10 @@ void RMS_task1(void)/*p;*/ // period*2
 /*e*/
 void RMS_task2(void)/*p;*/ // period*4
 {
-	// process inputs
-	uart0processInputs();
 	// process outputs
 	uart0processOutputs();
+	// process inputs
+	uart0processInputs();
 }
 
 /*e*/
@@ -285,13 +285,19 @@ void RMS_task11(void)/*p;*/ // period*2048
 volatile u32 bCounter;
 
 /*e*/
-void io_busyWait(void)/*p;*/
+void timer_sleepMs(s32 ms)/*p;*/
 {
-	bCounter = 0;
-	while(bCounter < 256*1024)
+	ms = ms * 2;
+	while(ms > 0)
 	{
-		bCounter++;
+		asm("wfi");
+		ms -= 1;
 	}
+	//~ bCounter = 0;
+	//~ while(bCounter < 256*1024)
+	//~ {
+		//~ bCounter++;
+	//~ }
 }
 
 //~ /*e*/
