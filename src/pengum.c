@@ -1677,6 +1677,14 @@ builtInWord4(PengumContext *c, u8 *start)/*i;*/
 		callWord(c, (u32)pengumFree, 1, 0);
 		return start + 4;
 	}
+	if((start[0] == 'w')
+	&& (start[1] == 'i')
+	&& (start[2] == 'f')
+	&& (start[3] == 'i') )
+	{
+		callWord(c, (u32)pengumWIFISendString, 1, 0);
+		return start + 4;
+	}
 	return 0;
 }
 

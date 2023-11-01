@@ -115,6 +115,7 @@ void pengumPh(void);
 void pengumPhn(void);
 void pengumPc(void);
 void pengumPch(void);
+void pengumWIFISendString(void);
 void pengumAbs(void);
 void pengumDiv(void);
 void pengumMod(void);

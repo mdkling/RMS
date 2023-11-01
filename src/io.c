@@ -432,7 +432,7 @@ void picoInit(void)/*p;*/
 	u32 *intEnable = (void*)PPB_INTERRUPT_ENABLE;
 	*intEnable = 
 	(1<<0)|(1<<1)|(1<<2)|(1<<3) // 4 timer interrupts
-	//~ |(1<<20)                    // uart interrupt
+	|(1<<21)                    // uart interrupt
 	|(1<<26)|(1<<27)|(1<<28);   // software defined interrupts
 	// set interrupt priorities
 	u32 *intPriority = (void*)PPB_NVIC_IPR6;
