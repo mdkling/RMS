@@ -1,46 +1,12 @@
 // This is a comment
 kernelVersion(){"0.001"psn^}
 
-// example implementation of a hex dump of an address
+newline(){ "" psn^ }
 
-_printC(val){
-	val 33 <{ '.' pc^}
-	val 126 >{ '.' pc^}
-	val pc ^
-}
-_printChars(addr numBytes){
-	numBytes 0 <={^}
-	addr $c _printC
-	addr 1 + numBytes 1 - ~
-}
 
-_printHexBytes(addr numBytes){
-	numBytes 0 <={^}
-	addr $c pch
-	addr 1 + numBytes 1 - ~
-}
 
-_printHexWords(addr numWords){
-	numWords 0 <={^}
-	addr 4 _printHexBytes
-	' ' pc
-	addr 4 + numWords 1 - ~
-}
 
-_printBlockLEhex(addr){
-	addr 4 _printHexWords ^
-}
 
-_printMemBlock(address){
-	address 0xF bw-clr addr;
-	addr ph ' ' pc
-	addr _printBlockLEhex
-	addr 16 _printChars
-	'\n' pc ^
-}
-
-printMemBlocks(addr numBlocks){
-	numBlocks 0 <={^}
-	addr _printMemBlock
-	addr 16 + numBlocks 1 - ~
-}
+// simple array for testing purposes
+8 arr.create foo:
+foo 8 arr.printall
