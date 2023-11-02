@@ -214,14 +214,14 @@ uart0processAllOutputs(void)/*p;*/
 /*e*/void
 uart0_outByte(u32 byte)/*p;*/
 {
-	// busy wait if full
-	if (out.write + 1 == out.read) { io_busyWait(); }
-	asm("CPSID i");  // disable interrupts
 	printAnotherChar:
+	// wait if full
+	if (((out.write+1)&UART0_OUT_BUFF_MASK)==out.read){timer_sleepMs(2);}
+	asm("CPSID i");  // disable interrupts
 	out.b[out.write] = byte;
 	out.write = (out.write+1) & UART0_OUT_BUFF_MASK;
-	if (byte == '\n') { byte = '\r'; goto printAnotherChar; }
 	asm("CPSIE i"); // enable interrupts
+	if (byte == '\n') { byte = '\r'; goto printAnotherChar; }
 }
 
 /*e*/
@@ -439,7 +439,7 @@ void picoInit(void)/*p;*/
 	u32 *intEnable = (void*)PPB_INTERRUPT_ENABLE;
 	*intEnable = 
 	(1<<0)|(1<<1)|(1<<2)|(1<<3) // 4 timer interrupts
-	//~ |(1<<20)                    // uart interrupt
+	|(1<<21)                    // uart interrupt
 	|(1<<26)|(1<<27)|(1<<28);   // software defined interrupts
 	// set interrupt priorities
 	u32 *intPriority = (void*)PPB_NVIC_IPR6;

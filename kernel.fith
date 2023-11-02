@@ -20,6 +20,8 @@ _printHexBytes(addr numBytes){
 	addr 1 + numBytes 1 - ~
 }
 
+\#wizfi360.fith
+
 _printHexWords(addr numWords){
 	numWords 0 <={^}
 	addr 4 _printHexBytes
@@ -44,3 +46,13 @@ printMemBlocks(addr numBlocks){
 	addr _printMemBlock
 	addr 16 + numBlocks 1 - ~
 }
+
+0xD0000000 SIO_BASE:
+SIO_BASE 0x1C + SIO_GPIO_OUT_XOR:
+wifiToggle(){ 1 20 << SIO_GPIO_OUT_XOR! ^} wifiToggle
+
+
+
+
+
+

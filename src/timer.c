@@ -183,10 +183,12 @@ void SDI_3(void)/*p;*/
 	*intClear = (1<<28);
 }
 
+//~ static u32 timerFlag;
+
 /*e*/
 void RMS_task0(u32 periodCount)/*p;*/ // period*1
 {
-	//~ io_printin(endSysTimer());
+	//~ if (timerFlag++ & 0x100) { io_printin(endSysTimer()); }
 	//~ io_printi(periodCount);
 	//~ io_printsn("t0");
 	
@@ -206,10 +208,11 @@ void RMS_task1(void)/*p;*/ // period*2
 /*e*/
 void RMS_task2(void)/*p;*/ // period*4
 {
-	// process inputs
-	uart0processInputs();
+	
 	// process outputs
 	uart0processOutputs();
+	// process inputs
+	uart0processInputs();
 }
 
 /*e*/
@@ -285,13 +288,19 @@ void RMS_task11(void)/*p;*/ // period*2048
 volatile u32 bCounter;
 
 /*e*/
-void io_busyWait(void)/*p;*/
+void timer_sleepMs(s32 ms)/*p;*/
 {
-	bCounter = 0;
-	while(bCounter < 256*1024)
+	ms = ms * 2;
+	while(ms > 0)
 	{
-		bCounter++;
+		asm("wfi");
+		ms -= 1;
 	}
+	//~ bCounter = 0;
+	//~ while(bCounter < 256*1024)
+	//~ {
+		//~ bCounter++;
+	//~ }
 }
 
 //~ /*e*/
