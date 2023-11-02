@@ -957,10 +957,11 @@ pengumWIFISendString:
 	beq	2f
 	bl	uart1_txByte
 	b	1b
-2:	bl	uart1_txByte
-	movs	r0, '\r'
+2:	movs	r0, '\r'
 	bl	uart1_txByte
 	movs	r0, '\n'
+	bl	uart1_txByte
+	movs	r0, 0
 	bl	uart1_txByte
 	pop	{pc}
 
