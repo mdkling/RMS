@@ -98,7 +98,7 @@ void term_processCharacter(u32 input)/*p;*/
 			io_prints("\n"); // restart line
 			if (inputLine.cursor == 0)
 			{
-				io_prints("\r>");
+				io_prints("\n\r>");
 				return;
 			}
 			// create process to handle input line
@@ -107,7 +107,7 @@ void term_processCharacter(u32 input)/*p;*/
 			rom_func.memcpy(&lines[term.currentLine], &inputLine, 128);
 			//~ os_createProcess((*lineHandler), lines[term.currentLine].line, 0);
 			task_enqueue(pengum_compile, lines[term.currentLine].line, 0);
-			task_enqueue(io_prints, "\r>", 0);
+			task_enqueue(io_prints, "\n\r>", 0);
 			//~ io_printh(*(u32*)lines[term.currentLine].line);
 			incrementCurrentLine();
 			setZeroWait();
