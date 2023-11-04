@@ -183,7 +183,8 @@ uart0processInputs(void)/*p;*/
 	while ( (uart->flags & (1<<4)) == 0)
 	{
 		//~ bufferAndSend(uart->data);
-		term_processCharacter(uart->data);
+		//~ term_processCharacter(uart->data);
+		task_enqueue(term_processCharacter, (void *)uart->data, 0);
 	}
 }
 

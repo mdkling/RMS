@@ -208,7 +208,6 @@ void RMS_task1(void)/*p;*/ // period*2
 /*e*/
 void RMS_task2(void)/*p;*/ // period*4
 {
-	
 	// process outputs
 	uart0processOutputs();
 	// process inputs

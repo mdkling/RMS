@@ -125,6 +125,7 @@ void pengumRealloc(void);
 void pengumAnd(void);
 void copyBackward(void *src, void* dst, u32 size);
 void copyForward(void *src, void* dst, u32 size);
+void task_enter(void *arg1, void *arg2, void *function);
 
 
 

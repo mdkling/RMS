@@ -463,9 +463,9 @@ flashEntry:
 	bl	picoInit
 	bl	printHelloBanner
 .global resetAllRegs
+resetAllRegs:
 	ldr  r0,=END_OF_RAM  ;@INITIAL_STACK
 	mov  sp, r0
-resetAllRegs:
 1:	wfe
 	bl	task_exec
 	b    1b
@@ -1159,3 +1159,12 @@ copyBackward: ;@ r0 = src r1 = dst r2 = size
 	subs r2, 1
 	bge 1b
 	bx lr
+
+.thumb_func
+.global task_enter
+task_enter: ;@ r0 = arg1 r1 = arg2 r2 = function
+	push	{r4,r5,r6,r7,lr}
+	movs	r7, r0
+	movs	r6, r1
+	blx	r2
+	pop	{r4,r5,r6,r7,pc}
