@@ -1,12 +1,17 @@
 // This is a comment
 kernelVersion(){"0.001"psn^}
 
+\#wizfi360.fith
+\#fith_src/basic_array.fith
+\#fith_src/ex_dump.fith
+
+
 newline(){ "" psn^ }
 
-
-
-
-
-// simple array for testing purposes
 8 arr.create foo:
 foo 8 arr.printall
+
+0xD0000000 SIO_BASE:
+SIO_BASE 0x1C + SIO_GPIO_OUT_XOR:
+wifiToggle(){ 1 20 << SIO_GPIO_OUT_XOR! ^} wifiToggle
+

@@ -65,6 +65,8 @@ enum{
 	BLOCK_WORD,
 	BLOCK_COND,
 	BLOCK_ELSE,
+	BLOCK_WHILE,
+	BLOCK_WHILE_COND,
 };
 
 enum{
@@ -210,6 +212,14 @@ armAdr(u32 dest, u32 imm)
 		imm = 1;
 	}
 	code += imm + (dest << 8);
+	return code;
+}
+
+/*e*/static u32
+armStrSpOffset(u32 src, u32 offset)/*i;*/
+{
+	u32 code = 0x9000;
+	code += (src<<8) + (offset);
 	return code;
 }
 
@@ -1003,14 +1013,31 @@ compileHas(PengumContext *c, u8 *cursor)/*i;*/
 }
 
 /*e*/static void
+compileWhile(PengumContext *c)/*i;*/
+{
+	Block *newBlock = pushNewBlock(c, BLOCK_WHILE);
+	newBlock->target2 = c->compileCursor;
+	newBlock->enteredStackState = c->stackState;
+}
+
+/*e*/static void
 compileCond(PengumContext *c, u32 cond)/*i;*/
 {
 	if (stackEffect(c, 2, 0)) { return; }
 	compileCmp(c);
-	Block *newBlock = pushNewBlock(c, BLOCK_COND);
-	newBlock->target = c->compileCursor;
-	newBlock->cond = cond;
-	newBlock->enteredStackState = c->stackState;
+	Block *top = list_getFirst(c->blocks);
+	if (top != 0 && top->blockType == BLOCK_WHILE)
+	{
+		top->blockType = BLOCK_WHILE_COND;
+		top->target = c->compileCursor;
+		top->cond = cond;
+		top->endCondStackState = c->stackState;
+	} else {
+		Block *newBlock = pushNewBlock(c, BLOCK_COND);
+		newBlock->target = c->compileCursor;
+		newBlock->cond = cond;
+		newBlock->enteredStackState = c->stackState;
+	}
 	*c->compileCursor++ = 0;
 }
 
@@ -1221,6 +1248,23 @@ case BLOCK_ELSE:
 	*block->target = armBranch(c, c->compileCursor - block->target - 2);
 	break;
 }
+case BLOCK_WHILE: printError(c, "incomplete while block"); return;
+case BLOCK_WHILE_COND:
+{
+	if ((block->hasReturn|block->hasRepeat) == 0
+	&& c->stackState != block->enteredStackState) // normal control flow
+	{
+		printError(c, "stack state at end of 'while' does not match starting state");
+		break;
+	}
+	u16 *branchLocation = c->compileCursor++;
+	*branchLocation = armBranch(c, block->target2 - branchLocation - 2);
+	c->stackState = block->endCondStackState;
+	*block->target = armCond(c, block->cond,
+		c->compileCursor - block->target - 2);
+	break;
+}
+
 default: printError(c, "unmatched '}'"); return;
 	}
 	free(block);
@@ -1304,13 +1348,16 @@ createVar(PengumContext *c, u8 *start, u32 length)/*i;*/
 	if (stackEffect(c, 1, 0)) { return; }
 	if (c->blocks != 0)
 	{
-		if (c->blocks->next == c->blocks)
-		{
-			createLocal(c, start, length);
-			*c->compileCursor++ = armPush(1 << (c->stackState-1));
-			return;
+		s32 localNum = createLocal(c, start, length);
+		if (c->blocks->next != c->blocks && localNum >= 0){
+			printError(c, "locals must be defined one level deep"); return;
 		}
-		printError(c, "locals can only be defined one block deep");
+		if (localNum >= 0){ // new local
+			*c->compileCursor++ = armPush(1 << (c->stackState-1));
+		} else { // update local
+			localNum = -(localNum + 1);
+			*c->compileCursor++ = armStrSpOffset(c->stackState-1, c->localsIndex-localNum-1);
+		}
 		return;
 	}
 	Tree *word  = createGlobalWord(c, start, length);
@@ -1370,17 +1417,20 @@ createWordFunction(PengumContext *c, u8 *start, u32 length)/*i;*/
 	c->flags = 0;
 }
 
-/*e*/static u32
+/*e*/static s32
 createLocal(PengumContext *c, u8 *start, u32 length)/*i;*/
 {
-	u32 localNum = c->localsIndex++;
-	Tree *word = tree_add(&c->locals, start, length, (void*)localNum);
+	s32 localNum;
+	Tree *word = tree_add(&c->locals, start, length, 0);
 	if (word)
 	{
-		printError(c, "redefinition of local that existed");
-		word->value = (void*)localNum;
+		// local already exists, return as negative num
+		localNum = (s32)word->value;
+		localNum = -localNum - 1;
 	} else {
 		word = tree_find(c->locals, start, length);
+		word->value = (void*)c->localsIndex++;
+		localNum = (s32)word->value;
 	}
 	word->type = WORD_LOCAL;
 	return localNum;
@@ -1390,7 +1440,8 @@ createLocal(PengumContext *c, u8 *start, u32 length)/*i;*/
 createParameter(PengumContext *c, u8 *start, u32 length)/*i;*/
 {
 	c->numParams++;
-	createLocal(c, start, length);
+	s32 localNum = createLocal(c, start, length);
+	if (localNum < 0) { printError(c, "parameter name used again"); }
 }
 
 /*e*/static Tree*
@@ -1626,6 +1677,14 @@ builtInWord4(PengumContext *c, u8 *start)/*i;*/
 		callWord(c, (u32)pengumFree, 1, 0);
 		return start + 4;
 	}
+	if((start[0] == 'w')
+	&& (start[1] == 'i')
+	&& (start[2] == 'f')
+	&& (start[3] == 'i') )
+	{
+		callWord(c, (u32)pengumWIFISendString, 1, 0);
+		return start + 4;
+	}
 	return 0;
 }
 
@@ -1640,6 +1699,15 @@ builtInWord5(PengumContext *c, u8 *start)/*i;*/
 	&& (start[4] == 'c') )
 	{
 		callWord(c, (u32)pengumZalloc, 1, 1);
+		return start + 5;
+	}
+	if((start[0] == 'w')
+	&& (start[1] == 'h')
+	&& (start[2] == 'i')
+	&& (start[3] == 'l')
+	&& (start[4] == 'e') )
+	{
+		compileWhile(c);
 		return start + 5;
 	}
 	return 0;

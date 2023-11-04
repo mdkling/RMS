@@ -64,10 +64,12 @@ PPB_INTERRUPT_PEND     = PPB_BASE + 0xE280
 IO_BANK0_BASE          = 0x40014000
 IO_GPIO00_CTRL         = IO_BANK0_BASE + 0x004
 IO_GPIO01_CTRL         = IO_BANK0_BASE + 0x00C
+IO_GPIO04_CTRL         = IO_BANK0_BASE + 0x024
+IO_GPIO05_CTRL         = IO_BANK0_BASE + 0x02C
 IO_GPIO12_CTRL         = IO_BANK0_BASE + 0x064
 IO_GPIO13_CTRL         = IO_BANK0_BASE + 0x06C
 
-
+IO_GPIO20_CTRL_RW      = IO_BANK0_BASE + 0x0A4
 IO_GPIO25_CTRL_RW      = IO_BANK0_BASE + 0x0CC
 
 RESETS_RESET_CLR       = 0x4000C000 + 0x3000
@@ -83,6 +85,7 @@ PLL_SYS_FBDIV      = PLL_SYS_BASE + 0x08
 PLL_SYS_PRIM       = PLL_SYS_BASE + 0x0C
 
 UART0_BASE         = 0x40034000
+UART1_BASE         = 0x40038000
 UART0_DR           = 0x000
 UART0_FR           = 0x018
 UART0_IBRD         = 0x024
@@ -225,7 +228,7 @@ vector_table:
 	.word REBOOT
 	
 	.word REBOOT   ;@ 20
-	.word REBOOT
+	.word isr_uart1
 	.word REBOOT
 	.word REBOOT
 	
@@ -453,6 +456,7 @@ flashEntry:
 	movs	r2, 1
 	bl	resetIOBank
 	bl	configUART
+	bl	wifiUart
 	bl	setZeroWait ;@ until there is enough time to rip through both stacks
 	;@~ bl   helper_unlock
 	bl	memsys5Init
@@ -518,6 +522,8 @@ resetIOBank:
 	tst  r1, r3
 	beq  1b
 	lsls r3,r2,25
+	lsls r1,r2,20
+	adds r3, r1
 	ldr  r0, =SIO_GPIO_OE_CLR
 	str  r3, [r0]
 	ldr  r0, =SIO_GPIO_OUT_CLR
@@ -528,6 +534,8 @@ resetIOBank:
 	movs r1, 5  ;@ GPIO control
 	;@~ movs r1, 7 ;@ PIO 1 control
 	ldr  r0, =IO_GPIO25_CTRL_RW
+	str  r1, [r0]
+	ldr  r0, =IO_GPIO20_CTRL_RW
 	str  r1, [r0]
 	bx   lr
 	
@@ -582,22 +590,82 @@ configUART:
 	
 	bx lr
 
-.balign 2
-.code 16
+.thumb_func
+wifiUart:
+	;@ Section UART 
+	;@ bring up UART
+	lsls r3,r2,#23
+	ldr r0, =RESETS_RESET_CLR
+	str r3, [r0]
+	ldr r0, =RESETS_RESET_DONE_RW ;@ read status to see if it is ready
+1:
+	ldr r1,[r0]
+	tst r1, r3
+	beq 1b
+	
+	ldr r4,=UART1_BASE ;@ base reg
+	ldr r1,=6
+	str r1,[r4, #UART0_IBRD] ;@ set up baud
+	
+	ldr r1,=33
+	str r1,[r4, #UART0_FBRD] ;@ set up fractional baud
+	
+	ldr r1,=0x70
+	str r1,[r4, #UART0_LCR] ;@ set up fractional baud
+	
+	ldr r1,=(1<<9)|(1<<8)|(1<<0)
+	str r1,[r4, #UART0_CR] ;@ enable UART, TX and RX
+	
+	ldr r1,=(1<<6)|(1<<4) ;@ |(1<<5)
+	str r1,[r4, #UART0_IRMASK]
+	ldr r0,=IO_GPIO04_CTRL ;@ set gpio 0 to UART 0 TX
+	ldr r1,=2
+	str r1,[r0]
+	ldr r0,=IO_GPIO05_CTRL ;@set gpio 1 to UART 0 RX
+	ldr r1,=2
+	str r1,[r0]
+	bx lr
+
+.thumb_func
+.global uart1_txByte
+uart1_txByte: ;@ r0 = data to print
+	ldr	r1,=UART1_BASE ;@ get address of UART
+1:	ldr	r2,[r1, #UART0_FR]
+	lsls	r2, 26 
+	bmi	1b
+	strb	r0,[r1] ;@ write data out the serial port
+	bx lr
+
+.thumb_func
+.global isr_uart1
+isr_uart1:
+	push	{r4,lr}
+	ldr	r4, =UART1_BASE ;@ get base address of UART
+	ldr	r2, [r4, #UART0_IRMASKSTATUS]
+	movs	r3, 0xFF
+	str	r3, [r4, #UART0_IRCLEAR] ;@ clear interrupts
+	movs	r3, 0x50
+	tst	r2, r3
+	beq	2f ;@ the interrupt was not on a recieve
+1:	ldr	r2, [r4, #UART0_FR]
+	lsls	r2, 27 
+	bmi	2f ;@ no characters
+	ldr	r0, [r4, #UART0_DR]
+	bl	uart0_outByte
+	b	1b
+2:	pop	{r4,pc}
+
 .thumb_func
 .global readSysTimerVal
-.type readSysTimerVal, %function
 readSysTimerVal:
 	ldr  r1, =SYST_CSR
 	ldr  r1, [r1, #SYST_CVR]
 	subs r0, r1, r0
 	bx lr
 
-.balign 2
-.code 16
+
 .thumb_func
 .global startSysTimer
-.type startSysTimer, %function
 startSysTimer:
 	ldr  r1, =SYST_CSR
 	ldr  r0, =0xFFFFFF
@@ -608,11 +676,9 @@ startSysTimer:
 	str  r0, [r1, #0]
 	bx lr
 
-.balign 2
-.code 16
+
 .thumb_func
 .global endSysTimer
-.type endSysTimer, %function
 endSysTimer:
 	ldr  r1, =SYST_CSR
 	ldr  r2, [r1, #SYST_CVR]
@@ -879,6 +945,24 @@ pengumPch:
 	push	{lr}
 	movs	r0, r7
 	bl	io_printch
+	pop	{pc}
+
+.thumb_func
+.global pengumWIFISendString
+pengumWIFISendString:
+	push	{lr}
+1:	ldrb	r0, [r7]
+	adds	r7, 1
+	cmp	r0, 0
+	beq	2f
+	bl	uart1_txByte
+	b	1b
+2:	movs	r0, '\r'
+	bl	uart1_txByte
+	movs	r0, '\n'
+	bl	uart1_txByte
+	movs	r0, 0
+	bl	uart1_txByte
 	pop	{pc}
 
 .thumb_func
