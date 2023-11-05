@@ -12,10 +12,14 @@ typedef struct {
 	u8	b[UART0_OUT_BUFF_SIZE];
 } Uart0Output;
 
-static Uart0Output out;
+//~ static Uart0Output out;
 //~ static u8       uart0Buffer[256];
 //~ static u32      uart0BuffStartIndex;
 //~ static u32      uart0BuffIndex;
+static ByteStream *toByteStream;
+static ByteStream *fromByteStream;
+static u32         toIndex;
+static u32         fromIndex;
 
 /*e*/
 s32
@@ -183,7 +187,8 @@ uart0processInputs(void)/*p;*/
 	while ( (uart->flags & (1<<4)) == 0)
 	{
 		//~ bufferAndSend(uart->data);
-		term_processCharacter(uart->data);
+		//~ term_processCharacter(uart->data);
+		task_enqueue(term_processCharacter, (void *)uart->data, 0);
 	}
 }
 
@@ -191,35 +196,51 @@ uart0processInputs(void)/*p;*/
 uart0processOutputs(void)/*p;*/
 {
 	Uart0MemMap *uart = (void*)UART0_BASE;
-	u32 read = out.read;
-	u32 write = out.write;
-	while (read != write && (uart->flags&(1<<5)) == 0 )
+	while (1)
 	{
-		uart->data = out.b[read];
-		read = (read+1) & UART0_OUT_BUFF_MASK;
+		if ( (uart->flags&(1<<5))!=0 ) { break; } // tx fifo full, leave
+		if (fromIndex == toIndex && fromByteStream == toByteStream) { break; }
+		if (fromIndex == 124)
+		{
+			ByteStream *finishedStream = fromByteStream;
+			fromByteStream = fromByteStream->next;
+			//~ free(finishedStream);
+			task_enqueue(free, finishedStream, 0);
+			fromIndex = 0;
+		}
+		uart->data = fromByteStream->data[fromIndex++];		
 	}
-	out.read = read;
 }
 
 /*e*/void
 uart0processAllOutputs(void)/*p;*/
 {
 	Uart0MemMap *uart = (void*)UART0_BASE;
-	while (out.read != out.write || (uart->flags&(1<<3)) != 0)
+	while (//out.read != out.write || 
+	(uart->flags&(1<<3)) != 0)
 	{
 		uart0processOutputs();
 	}
+}
+
+static void io_StreamInit(void)
+{
+	toByteStream = zalloc(sizeof(ByteStream));
+	fromByteStream = toByteStream;
 }
 
 /*e*/void
 uart0_outByte(u32 byte)/*p;*/
 {
 	printAnotherChar:
-	// wait if full
-	if (((out.write+1)&UART0_OUT_BUFF_MASK)==out.read){timer_sleepMs(2);}
+	if (toIndex == 124)
+	{
+		toByteStream->next = zalloc(sizeof(ByteStream));
+		toByteStream = toByteStream->next;
+		toIndex = 0;
+	}
 	asm("CPSID i");  // disable interrupts
-	out.b[out.write] = byte;
-	out.write = (out.write+1) & UART0_OUT_BUFF_MASK;
+	toByteStream->data[toIndex++] = byte;
 	asm("CPSIE i"); // enable interrupts
 	if (byte == '\n') { byte = '\r'; goto printAnotherChar; }
 }
@@ -465,6 +486,7 @@ void picoInit(void)/*p;*/
 	// we can now read flash addresses
 	// set timer 0 to kick off RMS
 	timer_set(0, 10);
+	io_StreamInit();
 	//~ treeTest();
 	// process fith kernel stuff
 	startSysTimer();
