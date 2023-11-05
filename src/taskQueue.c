@@ -8,12 +8,12 @@ typedef struct {
 
 #define NUM_TASKS  85
 typedef struct {
-	Task	tasks[NUM_TASKS];
 	u16		r;
 	u16		w;
+	Task	tasks[NUM_TASKS];
 } TaskQueue;
 
-static TaskQueue q;
+TaskQueue q;
 
 /*e*/void
 task_enqueue(void *function, void *arg1, void *arg2)/*p;*/
@@ -27,8 +27,10 @@ task_enqueue(void *function, void *arg1, void *arg2)/*p;*/
 	asm("CPSIE i"); // enable interrupts
 }
 
-/*e*/void
-task_exec(void)/*p;*/
+#if 0
+
+void
+task_exec(void)
 {
 	u32 read = q.r;
 	u32 write = q.w;
@@ -44,7 +46,7 @@ task_exec(void)/*p;*/
 	}
 }
 
-#if 0
+
 
 typedef struct StackLayout {
 	u32 R4;

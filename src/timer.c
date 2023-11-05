@@ -189,14 +189,7 @@ void SDI_3(void)/*p;*/
 void RMS_task0(u32 periodCount)/*p;*/ // period*1
 {
 	//~ if (timerFlag++ & 0x100) { io_printin(endSysTimer()); }
-	//~ io_printi(periodCount);
-	//~ io_printsn("t0");
 	
-	
-	// END OF FRAME
-	
-	// 2560ms period 0x3FF (0x007 was last I could see with eye, 20ms on/off)
-	//~ if ( (periodCount & 0x1FF) == 0) { io_ledToggle(); }
 }
 
 /*e*/
