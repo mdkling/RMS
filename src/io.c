@@ -204,8 +204,7 @@ uart0processOutputs(void)/*p;*/
 		{
 			ByteStream *finishedStream = fromByteStream;
 			fromByteStream = fromByteStream->next;
-			//~ free(finishedStream);
-			task_enqueue(free, finishedStream, 0);
+			free(finishedStream);
 			fromIndex = 0;
 		}
 		uart->data = fromByteStream->data[fromIndex++];		
@@ -218,9 +217,9 @@ uart0processAllOutputs(void)/*p;*/
 	Uart0MemMap *uart = (void*)UART0_BASE;
 	while (//out.read != out.write || 
 	(uart->flags&(1<<3)) != 0)
-	{
+	do {
 		uart0processOutputs();
-	}
+	} while ((uart->flags&(1<<3)) != 0);
 }
 
 static void io_StreamInit(void)
@@ -235,7 +234,9 @@ uart0_outByte(u32 byte)/*p;*/
 	printAnotherChar:
 	if (toIndex == 124)
 	{
-		toByteStream->next = zalloc(sizeof(ByteStream));
+		ByteStream *new;
+		do{new=zalloc(sizeof(ByteStream));}while(new==0);
+		toByteStream->next = new;
 		toByteStream = toByteStream->next;
 		toIndex = 0;
 	}
