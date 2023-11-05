@@ -1,0 +1,41 @@
+// Fith engineering math helpers
+// M.Kling 
+// Sat Nov  4 22:40:47 EDT 2023
+
+// Product over sum
+parallel( a b ){ a b * a b + / ^}
+
+// Power
+pow( a b ){
+	1 total;
+	while b 0 >{
+		total a * total;
+		b 1 - b;
+	}
+	total ^
+}
+
+
+// scientific/SI postfixes
+Exa( a ){ a 10 18 pow * ^}
+Peta( a ){ a 10 15 pow * ^}
+Tera( a ){ a 10 12 pow * ^}
+Gig( a ){ a 10 9 pow * ^}
+Meg( a ){ a 10 6 pow * ^}
+k( a ){ a 10 3 pow * ^}
+// negative exponents not supported in integer math
+// m( a ){ a 10 -3 pow * ^}
+// u( a ){ a 10 -9 pow * ^}
+// n( a ){ a 10 -12 pow * ^}
+// p( a ){ a 10 -15 pow * ^}
+
+
+
+// Temperature conversions
+FtoC( a ){ a 32 - 5 * 9 / ^}
+KtoC( a ){ a 273 - ^}	// should be 273.15
+CtoF( a ){ a 9 * 5 / 32 + ^}
+KtoF( a ){ a KtoC CtoF ^}
+CtoK( a ){ a 273 + ^}	// should be 273.15
+FtoK( a ){ a FtoC CtoK ^}
+

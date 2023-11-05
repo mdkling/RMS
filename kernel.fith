@@ -4,6 +4,7 @@ kernelVersion(){"0.001"psn^}
 \#wizfi360.fith
 \#fith_src/basic_array.fith
 \#fith_src/ex_dump.fith
+\#fith_src/eng_math.fith
 
 
 newline(){ "" psn^ }
