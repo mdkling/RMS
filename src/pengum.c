@@ -892,7 +892,7 @@ compileLoad32BitWord(PengumContext *c)/*i;*/
 /*e*/static void
 compileReturn(PengumContext *c)/*i;*/
 {
-	//~ if (c->currentWord == 0){printError(c,"must be inside word to return"); return;}
+	if (c->currentWord == 0){printError(c,"must be inside word to return"); return;}
 	u32 numItemsReturned = 8 - c->stackState;
 	Block *top = list_getFirst(c->blocks);
 	if (top) { top->hasReturn = 1; }
