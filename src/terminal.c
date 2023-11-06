@@ -77,9 +77,15 @@ static void insertCharacter(u32 input)
 	inputLine.cursor++;
 	inputLine.size++;
 	// TODO this could check for last character case and skip copy and output
-	copyBackward(&inputLine.line[inputLine.cursor-1],
-		&inputLine.line[inputLine.cursor], inputLine.size - inputLine.cursor);
-	inputLine.line[inputLine.cursor-1] = input;
+	if (inputLine.cursor != inputLine.size){
+		copyBackward(&inputLine.line[inputLine.cursor-1],
+			&inputLine.line[inputLine.cursor], inputLine.size - inputLine.cursor);
+		inputLine.line[inputLine.cursor-1] = input;
+		printTerminalLine();
+	} else {
+		inputLine.line[inputLine.cursor-1] = input;
+		uart0_outByte(input);
+	}
 	return;
 }
 
@@ -125,7 +131,6 @@ void term_processCharacter(u32 input)/*p;*/
 			return;
 		}
 		insertCharacter(input);
-		printTerminalLine();
 		return;
 	} else
 	if (term.state == TERM_STATE_ESC1)
