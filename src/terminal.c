@@ -76,7 +76,7 @@ static void insertCharacter(u32 input)
 {
 	inputLine.cursor++;
 	inputLine.size++;
-	// TODO this could check for last character case and skip copy and output
+	// check for last character case and skip copy and output
 	if (inputLine.cursor != inputLine.size){
 		copyBackward(&inputLine.line[inputLine.cursor-1],
 			&inputLine.line[inputLine.cursor], inputLine.size - inputLine.cursor);
