@@ -1,9 +1,9 @@
 #include "../localTypes.h"
 
 typedef struct {
-	void 	(*function)(void *arg1, void *arg2);
 	void	*arg1;
 	void	*arg2;
+	void 	(*function)(void *arg1, void *arg2);
 } Task;
 
 #define NUM_TASKS  85

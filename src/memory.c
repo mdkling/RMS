@@ -389,3 +389,41 @@ memsys5Init(void)/*p;*/
 	}
 }
 
+/*e*/
+void printMemStats(void)/*p;*/
+{
+	u32 totalMemory = 6144 * 32;
+	io_printi(totalMemory);
+	io_prints(": bytes of memory under stewardship.\n");
+	u32     memReady = 0;
+	s32	cursor   = 0;
+	u32     memSize  = 32;
+	for (u32 x = 0; x < LOGMAX; x++)
+	{
+		io_printi(memSize);
+		io_prints(":");
+		cursor = mem5.aiFreelist[x];
+		u32 nodeCount = 0;
+		while (cursor != -1)
+		{
+			memReady += memSize;
+			//~ io_prints("#");
+			nodeCount++;
+			cursor = MEM5LINK(cursor)->next;
+		}
+		while (nodeCount > 0)
+		{
+			io_prints("#");
+			nodeCount--;
+		}
+		io_prints("\n");
+		memSize *= 2;
+	}
+	io_printi(totalMemory - memReady);
+	io_printsn(": bytes of memory in use.");
+	io_printi(memReady);
+	io_printsn(": bytes of memory remaining.");
+	//~ io_printi(START_OF_REG_RAM - (u32)c.compileBase);
+	//~ io_printsn(": bytes of memory remaining in program data region.");
+}
+

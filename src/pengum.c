@@ -376,6 +376,22 @@ armNeg(u32 dest, u32 arg1)
 }
 
 static u32
+armStrByteOffset(u32 src, u32 dest, u32 offset)
+{
+	u32 code = 0x7000;
+	code += src + (dest << 3) + (offset << 6);
+	return code;
+}
+
+static u32
+armStrHwOffset(u32 src, u32 dest, u32 offset)
+{
+	u32 code = 0x8000;
+	code += src + (dest << 3) + (offset << 6);
+	return code;
+}
+
+static u32
 armStrOffset(u32 src, u32 dest, u32 offset)
 {
 	u32 code = 0x6000;
@@ -862,6 +878,20 @@ compileLoadLocal(PengumContext *c, u32 local)/*i;*/
 }
 
 /*e*/static void
+compileStore8BitWord(PengumContext *c)/*i;*/
+{
+	if (stackEffect(c, 2, 0)) { return; }
+	*c->compileCursor++ = armStrByteOffset(c->stackState-1, c->stackState-2, 0);
+}
+
+/*e*/static void
+compileStore16BitWord(PengumContext *c)/*i;*/
+{
+	if (stackEffect(c, 2, 0)) { return; }
+	*c->compileCursor++ = armStrHwOffset(c->stackState-1, c->stackState-2, 0);
+}
+
+/*e*/static void
 compileStore32BitWord(PengumContext *c)/*i;*/
 {
 	if (stackEffect(c, 2, 0)) { return; }
@@ -1147,6 +1177,18 @@ compileRbl(PengumContext *c, u8 *cursor)/*i;*/
 /*e*/static u8*
 compileBng(PengumContext *c, u8 *cursor)/*i;*/
 {
+	if (cursor[0] == 'c')
+	{
+		// handle else statement
+		compileStore8BitWord(c);
+		return cursor + 1;
+	}
+	if (cursor[0] == 'h')
+	{
+		// handle else statement
+		compileStore16BitWord(c);
+		return cursor + 1;
+	}
 	compileStore32BitWord(c);
 	return cursor;
 }
@@ -1683,6 +1725,14 @@ builtInWord4(PengumContext *c, u8 *start)/*i;*/
 	&& (start[3] == 'i') )
 	{
 		callWord(c, (u32)pengumWIFISendString, 1, 0);
+		return start + 4;
+	}
+	if((start[0] == 'm')
+	&& (start[1] == 'e')
+	&& (start[2] == 'm')
+	&& (start[3] == '?') )
+	{
+		callWord(c, (u32)printMemStats, 0, 0);
 		return start + 4;
 	}
 	return 0;

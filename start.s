@@ -466,31 +466,27 @@ flashEntry:
 resetAllRegs:
 	ldr 	r0,=END_OF_RAM  ;@INITIAL_STACK
 	mov 	sp, r0
-	ldr	r4, =q
 .global task_exec_loop
 task_exec_loop:
 1:	wfi
+2:	ldr	r4, =q
 	ldrh	r5, [r4, #0] ;@ read
 	ldrh	r6, [r4, #2] ;@ write
-2:	cmp	r5, r6
+	cmp	r5, r6
 	beq	1b
 	adds	r3, r4, 4
 	movs	r0, 12
 	muls	r0, r5 ;@ index
 	adds	r3, r0
-	ldm	r3!, {r2}
-	ldm	r3!, {r0}
-	ldm	r3!, {r1}
+	ldm	r3!, {r0,r1,r2}
 	adds	r5, 1
 	cmp	r5, 85
 	bne	3f
 	movs	r5, 0
 3:	strh	r5, [r4, #0] ;@ read
-	push	{r4,r5,r6}
 	movs	r7, r0
 	movs	r6, r1
 	blx	r2
-	pop	{r4,r5,r6}
 	b	2b
 
 .thumb_func
