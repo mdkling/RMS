@@ -682,7 +682,6 @@ readSysTimerVal:
 	subs r0, r1, r0
 	bx lr
 
-
 .thumb_func
 .global startSysTimer
 startSysTimer:
@@ -707,19 +706,9 @@ endSysTimer:
 	str  r2, [r1, #0]
 	bx lr
 
-.thumb_func
-.global pengumDiv
-pengumDiv:
-	push	{r6,r7,lr}
-	pop	{r0,r1}
-	bl	asmDiv
-	movs	r7, r0
-	pop	{pc}
-.balign 2
-.code 16
+
 .thumb_func
 .global asmDiv
-.type asmDiv, %function
 asmDiv: ;@ r0 = DIVISOR r1 = DIVIDEND
 	ldr  r2, = SIO_BASE
 	str  r1, [r2, #SIO_SIGNED_DIVIDEND]
@@ -733,18 +722,7 @@ asmDiv: ;@ r0 = DIVISOR r1 = DIVIDEND
 	bx   lr
 
 .thumb_func
-.global pengumMod
-pengumMod:
-	push	{r6,r7,lr}
-	pop	{r0,r1}
-	bl	asmMod
-	movs	r7, r0
-	pop	{pc}
-.balign 2
-.code 16
-.thumb_func
 .global asmMod
-.type asmMod, %function
 asmMod: ;@ r0 = DIVISOR r1 = DIVIDEND
 	ldr  r2, = SIO_BASE
 	str  r1, [r2, #SIO_SIGNED_DIVIDEND]
@@ -758,136 +736,216 @@ asmMod: ;@ r0 = DIVISOR r1 = DIVIDEND
 	ldr  r1, [r2, #SIO_QUOTIENT]
 	bx   lr
 
-.balign 2
-.code 16
 .thumb_func
 .global asmGetDiv
-.type asmGetDiv, %function
 asmGetDiv: ;@ call right after asmMod
 	movs r0, r1
 	bx   lr
 
+TIMER_BASE 		= 0x40054000
+TIMER_LOW_RAW 		= 0x28
+TIMER_ALARM0 		= 0x10
+TIMER_INTR	 	= 0x34
+TIMER_1_INCREMENT 	= 500
+
+.thumb_func
+.global alarm1ISRx
+alarm1ISRx: ;@ interrupt routine. r0-r3,r12 are already preserved
+	;@	reset timer interrupt and clear interrupt
+	ldr		r0, = TIMER_BASE
+	movs		r1, 1
+	str		r1, [r0, #TIMER_INTR]
+	ldr		r1, [r0, #TIMER_LOW_RAW]
+	ldr		r2, = TIMER_1_INCREMENT
+	adds		r1, r2
+	str		r1, [r0, #TIMER_ALARM0]
+	;@~ movs		r1, 1
+	;@~ str		r1, [r0, #TIMER_INTR]
+	;@	save off interrupted return location in r10
+	ldr		r0, [sp, #0x18]
+	mov		r10, r0
+	;@~ push	{lr}
+	;@~ bl		startSysTimer
+	;@~ pop		{r0}
+	;@~ mov		lr, r0
+	;@	store ISR wrap into return location
+	adr		r0, alarm1ISRx_wrap
+	str		r0, [sp, #0x18]
+	bx		lr
+
 .balign 4
-.ltorg
-
-.balign 2
-.code 16
 .thumb_func
-.global stringLen
-.type stringLen, %function
-stringLen: ;@ r0 has pointer to start of string, check 4 byte alignment
-	movs r1, r0
-	movs r0, 0
-	movs r2, 3
-	tst  r2, r1
-	bne  stringLenByte
-	movs r2, 0xFF
-5:
-	ldm  r1!, {r3}
-	tst  r3, r2
-	beq  1f
-	lsrs r3, 8
-	tst  r3, r2
-	beq  2f
-	lsrs r3, 8
-	tst  r3, r2
-	beq  3f
-	lsrs r3, 8
-	tst  r3, r2
-	beq  4f
-	adds r0, 4
-	b    5b
-4:
-	adds r0, 3
-	bx   lr
-3:
-	adds r0, 1
-2:
-	adds r0, 1
-1:
-	bx   lr
-
-1:
-	adds r0, 1
-stringLenByte:
-	ldrb r2, [r1, r0]
-	cmp  r2, 0
-	bne  1b
-	bx   lr
-
-;@ ARM implementations for the compiler
-.global __gnu_thumb1_case_uqi
+.global alarm1ISRx_wrap
+alarm1ISRx_wrap:
+	push		{r0,r1,r2,r3,r4,r5} ;@ capture r0-r4, pc
+	mov		r0, r10 // r10 is used to store return address
+	mrs		r1, APSR	;@ save off flags
+	adds		r0, 1		;@ put thumb bit on return addr
+	str		r0, [sp, #20]	;@ overwrite r5 with return address
+	mov		r0, r12		
+	push		{r0,r1,lr}	;@ capture r12, flags, lr
 .thumb_func
-__gnu_thumb1_case_uqi:
-	mov     r12, r1
-	mov     r1, lr
-	lsrs    r1, r1, #1
-	lsls    r1, r1, #1
-	ldrb    r1, [r1, r0]
-	lsls    r1, r1, #1
-	add     lr, lr, r1
-	mov     r1, r12
-	bx      lr
+.global RMS_task0_wrap
+RMS_task0_wrap:
+	ldr		r4, periodCount
+	ldr		r0, RMS_pengum_function_00
+	blx		r0
+	ldr		r4, periodCount
+1:	lsls		r0, r4, 32 - 1
+	beq		RMS_task1_wrap
+alarm1ISRx_wrap_end:
+	adr		r1, periodCount
+	adds		r0, r4, 1
+	str		r0, [r1]
+	pop		{r0,r1,r2}
+	mov		lr, r2
+	msr		APSR, r1
+	mov		r12, r0
+	pop		{r0,r1,r2,r3,r4,pc}
 
-.global __gnu_thumb1_case_sqi
+RMS_task1_wrap:
+	ldr		r0, RMS_pengum_function_01
+	blx		r0
+	ldr		r4, periodCount
+2:	lsls	r0, r4, 32 - 2
+	bne		alarm1ISRx_wrap_end
+
+RMS_task2_wrap:
+	bl		uart0processOutputs
+	bl		uart0processInputs
+	ldr		r0, RMS_pengum_function_02
+	blx		r0
+	ldr		r4, periodCount
+3:	lsls	r0, r4, 32 - 3
+	bne		alarm1ISRx_wrap_end
+
+RMS_task3_wrap:
+	ldr		r0, RMS_pengum_function_03
+	blx		r0
+	ldr		r4, periodCount
+4:	lsls	r0, r4, 32 - 4
+	bne		alarm1ISRx_wrap_end
+
+RMS_task4_wrap:
+	ldr		r0, RMS_pengum_function_04
+	blx		r0
+	ldr		r4, periodCount
+5:	lsls	r0, r4, 32 - 5
+	bne		alarm1ISRx_wrap_end
+
+RMS_task5_wrap:
+	ldr		r0, RMS_pengum_function_05
+	blx		r0
+	ldr		r4, periodCount
+6:	lsls	r0, r4, 32 - 6
+	bne		alarm1ISRx_wrap_end
+
+RMS_task6_wrap:
+	ldr		r0, RMS_pengum_function_06
+	blx		r0
+	ldr		r4, periodCount
+7:	lsls	r0, r4, 32 - 7
+	bne		alarm1ISRx_wrap_end
+
+RMS_task7_wrap:
+	ldr		r0, RMS_pengum_function_07
+	blx		r0
+	ldr		r4, periodCount
+8:	lsls	r0, r4, 32 - 8
+	bne		alarm1ISRx_wrap_end
+
+RMS_task8_wrap:
+	ldr		r0, RMS_pengum_function_08
+	blx		r0
+	ldr		r4, periodCount
+9:	lsls	r0, r4, 32 - 9
+	bne		alarm1ISRx_wrap_end
+
+RMS_task9_wrap:
+	ldr		r0, RMS_pengum_function_09
+	blx		r0
+	ldr		r4, periodCount
+10:	lsls	r0, r4, 32 - 10
+	bne		alarm1ISRx_wrap_end
+
+RMS_task10_wrap:
+	ldr		r0, RMS_pengum_function_10
+	blx		r0
+	ldr		r4, periodCount
+11:	lsls	r0, r4, 32 - 11
+	bne		alarm1ISRx_wrap_end
+
+RMS_task11_wrap:
+	;@~ bl		io_ledToggle
+	ldr		r0, RMS_pengum_function_11
+	blx		r0
+	ldr		r4, periodCount
+	b		alarm1ISRx_wrap_end
+
 .thumb_func
-__gnu_thumb1_case_sqi:
-	mov     r12, r1
-	mov     r1, lr
-	lsrs    r1, r1, #1
-	lsls    r1, r1, #1
-	ldrsb   r1, [r1, r0]
-	lsls    r1, r1, #1
-	add     lr, lr, r1
-	mov     r1, r12
-	bx      lr
+.global RMS_default
+RMS_default:
+	bx		lr
 
-.global __gnu_thumb1_case_uhi
 .thumb_func
-__gnu_thumb1_case_uhi:
-	push    {r0, r1}
-	mov     r1, lr
-	lsrs    r1, r1, #1
-	lsls    r0, r0, #1
-	lsls    r1, r1, #1
-	ldrh    r1, [r1, r0]
-	lsls    r1, r1, #1
-	add     lr, lr, r1
-	pop     {r0, r1}
-	bx      lr
-
-.global __gnu_thumb1_case_shi
-.thumb_func
-__gnu_thumb1_case_shi:
-	push    {r0, r1}
-	mov     r1, lr
-	lsrs    r1, r1, #1
-	lsls    r0, r0, #1
-	lsls    r1, r1, #1
-	ldrsh   r1, [r1, r0]
-	lsls    r1, r1, #1
-	add     lr, lr, r1
-	pop     {r0, r1}
-	bx      lr
-
-.global __gnu_thumb1_case_si
-.thumb_func
-__gnu_thumb1_case_si:
-	push	{r0, r1}
-	mov	r1, lr
-	adds.n	r1, r1, #2
-	lsrs	r1, r1, #2
-	lsls	r0, r0, #2
-	lsls	r1, r1, #2
-	ldr	r0, [r1, r0]
-	adds	r0, r0, r1
-	mov	lr, r0
-	pop	{r0, r1}
-	mov	pc, lr
-
+.global RMS_set_function
+RMS_set_function: ;@ r0 = index r1 = function
+	adr		r2, RMS_pengum_function_00
+	lsls		r0, 2
+	str		r1, [r2, r0]
+	bx		lr
 	
+.thumb_func
+.global RMS_get_function
+RMS_get_function: ;@ r0 = index
+	adr		r1, RMS_pengum_function_00
+	lsls		r0, 2
+	ldr		r0, [r1, r0]
+	bx		lr
+
+.global RMS_pengum_functions
+RMS_pengum_functions:
+RMS_pengum_function_00: .word RMS_default
+RMS_pengum_function_01: .word RMS_default
+RMS_pengum_function_02: .word RMS_default
+RMS_pengum_function_03: .word RMS_default
+RMS_pengum_function_04: .word RMS_default
+RMS_pengum_function_05: .word RMS_default
+RMS_pengum_function_06: .word RMS_default
+RMS_pengum_function_07: .word RMS_default
+RMS_pengum_function_08: .word RMS_default
+RMS_pengum_function_09: .word RMS_default
+RMS_pengum_function_10: .word RMS_default
+RMS_pengum_function_11: .word RMS_default
+
+.balign 4
+periodCount:
+.word	0
+
 .balign 4
 .ltorg
+
+;@
+;@ DOES NOT LOAD FROM THE PC RELATIVE AREA
+;@
+
+.thumb_func
+.global pengumDiv
+pengumDiv:
+	push	{r6,r7,lr}
+	pop	{r0,r1}
+	bl	asmDiv
+	movs	r7, r0
+	pop	{pc}
+
+.thumb_func
+.global pengumMod
+pengumMod:
+	push	{r6,r7,lr}
+	pop	{r0,r1}
+	bl	asmMod
+	movs	r7, r0
+	pop	{pc}
 
 .thumb_func
 .global pengumAbs
@@ -1011,127 +1069,6 @@ pengumRealloc:
 	movs	r7, r0
 	pop	{pc}
 
-TIMER_BASE 		= 0x40054000
-TIMER_LOW_RAW 		= 0x28
-TIMER_ALARM0 		= 0x10
-TIMER_INTR	 	= 0x34
-TIMER_1_INCREMENT 	= 500
-
-.thumb_func
-.global alarm1ISRx
-alarm1ISRx: ;@ interrupt routine. r0-r3,r12 are already preserved
-	;@	reset timer interrupt and clear interrupt
-	ldr		r0, = TIMER_BASE
-	movs		r1, 1
-	str		r1, [r0, #TIMER_INTR]
-	ldr		r1, [r0, #TIMER_LOW_RAW]
-	ldr		r2, = TIMER_1_INCREMENT
-	adds		r1, r2
-	str		r1, [r0, #TIMER_ALARM0]
-	;@~ movs		r1, 1
-	;@~ str		r1, [r0, #TIMER_INTR]
-	;@	save off interrupted return location in r10
-	ldr		r0, [sp, #0x18]
-	mov		r10, r0
-	;@~ push	{lr}
-	;@~ bl		startSysTimer
-	;@~ pop		{r0}
-	;@~ mov		lr, r0
-	;@	store ISR wrap into return location
-	adr		r0, alarm1ISRx_wrap
-	str		r0, [sp, #0x18]
-	bx		lr
-
-.balign 4
-.thumb_func
-.global alarm1ISRx_wrap
-alarm1ISRx_wrap:
-	push		{r0,r1,r2,r3,r4,r5} ;@ capture r0-r4, pc
-	mov		r0, r10 // r10 is used to store return address
-	mrs		r1, APSR	;@ save off flags
-	adds		r0, 1		;@ put thumb bit on return addr
-	str		r0, [sp, #20]	;@ overwrite r5 with return address
-	mov		r0, r12		
-	push		{r0,r1,lr}	;@ capture r12, flags, lr
-.thumb_func
-.global RMS_task0_wrap
-RMS_task0_wrap:
-	adr		r1, periodCount
-	ldr		r0, [r1]
-	mov		r4, r0		;@ store in r4 for this period
-	adds		r2, r4, 1	;@ increment period count
-	str		r2, [r1]
-	bl		RMS_task0
-	lsls		r0, r4, 32 - 1
-	beq		RMS_task1_wrap
-alarm1ISRx_wrap_end:
-	pop		{r0,r1,r2}
-	mov		lr, r2
-	msr		APSR, r1
-	mov		r12, r0
-	pop		{r0,r1,r2,r3,r4,pc}
-
-RMS_task1_wrap:
-	bl		RMS_task1
-	lsls	r0, r4, 32 - 2
-	bne		alarm1ISRx_wrap_end
-
-RMS_task2_wrap:
-	;@~ ldr	r0, [sp, #28]
-	;@~ bl	io_printhn
-	bl		RMS_task2
-	lsls	r0, r4, 32 - 3
-	bne		alarm1ISRx_wrap_end
-
-RMS_task3_wrap:
-	bl		RMS_task3
-	lsls	r0, r4, 32 - 4
-	bne		alarm1ISRx_wrap_end
-
-RMS_task4_wrap:
-	bl		RMS_task4
-	lsls	r0, r4, 32 - 5
-	bne		alarm1ISRx_wrap_end
-
-RMS_task5_wrap:
-	bl		RMS_task5
-	lsls	r0, r4, 32 - 6
-	bne		alarm1ISRx_wrap_end
-
-RMS_task6_wrap:
-	bl		RMS_task6
-	lsls	r0, r4, 32 - 7
-	bne		alarm1ISRx_wrap_end
-	
-RMS_task7_wrap:
-	bl		RMS_task7
-	lsls	r0, r4, 32 - 8
-	bne		alarm1ISRx_wrap_end
-
-RMS_task8_wrap:
-	bl		RMS_task8
-	lsls	r0, r4, 32 - 9
-	bne		alarm1ISRx_wrap_end
-
-RMS_task9_wrap:
-	bl		RMS_task9
-	lsls	r0, r4, 32 - 10
-	bne		alarm1ISRx_wrap_end
-	
-RMS_task10_wrap:
-	bl		RMS_task10
-	lsls	r0, r4, 32 - 11
-	bne		alarm1ISRx_wrap_end
-
-RMS_task11_wrap:
-	bl		RMS_task11
-	b		alarm1ISRx_wrap_end
-
-
-.balign 4
-periodCount:
-.word	0
-
 .thumb_func
 .global pengumMachineEnter
 pengumMachineEnter:
@@ -1179,3 +1116,115 @@ copyBackward: ;@ r0 = src r1 = dst r2 = size
 	bge 1b
 	bx lr
 
+.thumb_func
+.global stringLen
+stringLen: ;@ r0 has pointer to start of string, check 4 byte alignment
+	movs r1, r0
+	movs r0, 0
+	movs r2, 3
+	tst  r2, r1
+	bne  stringLenByte
+	movs r2, 0xFF
+5:
+	ldm  r1!, {r3}
+	tst  r3, r2
+	beq  1f
+	lsrs r3, 8
+	tst  r3, r2
+	beq  2f
+	lsrs r3, 8
+	tst  r3, r2
+	beq  3f
+	lsrs r3, 8
+	tst  r3, r2
+	beq  4f
+	adds r0, 4
+	b    5b
+4:
+	adds r0, 3
+	bx   lr
+3:
+	adds r0, 1
+2:
+	adds r0, 1
+1:
+	bx   lr
+
+1:
+	adds r0, 1
+stringLenByte:
+	ldrb r2, [r1, r0]
+	cmp  r2, 0
+	bne  1b
+	bx   lr
+
+
+;@ ARM implementations for the compiler
+.global __gnu_thumb1_case_uqi
+.thumb_func
+__gnu_thumb1_case_uqi:
+	mov     r12, r1
+	mov     r1, lr
+	lsrs    r1, r1, #1
+	lsls    r1, r1, #1
+	ldrb    r1, [r1, r0]
+	lsls    r1, r1, #1
+	add     lr, lr, r1
+	mov     r1, r12
+	bx      lr
+
+.global __gnu_thumb1_case_sqi
+.thumb_func
+__gnu_thumb1_case_sqi:
+	mov     r12, r1
+	mov     r1, lr
+	lsrs    r1, r1, #1
+	lsls    r1, r1, #1
+	ldrsb   r1, [r1, r0]
+	lsls    r1, r1, #1
+	add     lr, lr, r1
+	mov     r1, r12
+	bx      lr
+
+.global __gnu_thumb1_case_uhi
+.thumb_func
+__gnu_thumb1_case_uhi:
+	push    {r0, r1}
+	mov     r1, lr
+	lsrs    r1, r1, #1
+	lsls    r0, r0, #1
+	lsls    r1, r1, #1
+	ldrh    r1, [r1, r0]
+	lsls    r1, r1, #1
+	add     lr, lr, r1
+	pop     {r0, r1}
+	bx      lr
+
+.global __gnu_thumb1_case_shi
+.thumb_func
+__gnu_thumb1_case_shi:
+	push    {r0, r1}
+	mov     r1, lr
+	lsrs    r1, r1, #1
+	lsls    r0, r0, #1
+	lsls    r1, r1, #1
+	ldrsh   r1, [r1, r0]
+	lsls    r1, r1, #1
+	add     lr, lr, r1
+	pop     {r0, r1}
+	bx      lr
+
+.global __gnu_thumb1_case_si
+.thumb_func
+__gnu_thumb1_case_si:
+	push	{r0, r1}
+	mov	r1, lr
+	adds.n	r1, r1, #2
+	lsrs	r1, r1, #2
+	lsls	r0, r0, #2
+	lsls	r1, r1, #2
+	ldr	r0, [r1, r0]
+	adds	r0, r0, r1
+	mov	lr, r0
+	pop	{r0, r1}
+	mov	pc, lr
