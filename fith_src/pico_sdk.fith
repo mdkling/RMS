@@ -1,0 +1,210 @@
+//  Fith library for the RP2040 register map
+//  M.Kling
+//  Sat Nov 25 00:00:04 EST 2023
+
+
+// SIO Registers
+0xD0000000 SIO_BASE:
+SIO_BASE 0x1C + SIO_GPIO_OUT_XOR:
+
+
+0x000 SIO_BASE + CPUID: // Processor core identifier
+0x004 SIO_BASE + GPIO_IN: // Input value for GPIO pins
+0x008 SIO_BASE + GPIO_HI_IN: // Input value for QSPI pins
+0x010 SIO_BASE + GPIO_OUT: // GPIO output value
+0x014 SIO_BASE + GPIO_OUT_SET: // GPIO output value set
+0x018 SIO_BASE + GPIO_OUT_CLR: // GPIO output value clear
+0x01C SIO_BASE + GPIO_OUT_XOR: // GPIO output value XOR
+0x020 SIO_BASE + GPIO_OE: // GPIO output enable
+0x024 SIO_BASE + GPIO_OE_SET: // GPIO output enable set
+0x028 SIO_BASE + GPIO_OE_CLR: // GPIO output enable clear
+0x02C SIO_BASE + GPIO_OE_XOR: // GPIO output enable XOR
+0x030 SIO_BASE + GPIO_HI_OUT: // QSPI output value
+0x034 SIO_BASE + GPIO_HI_OUT_SET: // QSPI output value set
+0x038 SIO_BASE + GPIO_HI_OUT_CLR: // QSPI output value clear
+0x03C SIO_BASE + GPIO_HI_OUT_XOR: // QSPI output value XOR
+0x040 SIO_BASE + GPIO_HI_OE: // QSPI output enable
+0x044 SIO_BASE + GPIO_HI_OE_SET: // QSPI output enable set
+0x048 SIO_BASE + GPIO_HI_OE_CLR: // QSPI output enable clear
+0x04C SIO_BASE + GPIO_HI_OE_XOR: // QSPI output enable XOR
+0x050 SIO_BASE + FIFO_ST: // Status register for inter-core FIFOs (mailboxes).
+0x054 SIO_BASE + FIFO_WR: // Write access to this core’s TX FIFO
+0x058 SIO_BASE + FIFO_RD: // Read access to this core’s RX FIFO
+0x05C SIO_BASE + SPINLOCK_ST: // Spinlock state
+0x060 SIO_BASE + DIV_UDIVIDEND: // Divider unsigned dividend
+0x064 SIO_BASE + DIV_UDIVISOR: // Divider unsigned divisor
+0x068 SIO_BASE + DIV_SDIVIDEND: // Divider signed dividend
+0x06C SIO_BASE + DIV_SDIVISOR: // Divider signed divisor
+0x070 SIO_BASE + DIV_QUOTIENT: // Divider result quotient
+0x074 SIO_BASE + DIV_REMAINDER: // Divider result remainder
+0x078 SIO_BASE + DIV_CSR: // Control and status register for divider.
+0x080 SIO_BASE + INTERP0_ACCUM0: // Read/write access to accumulator 0
+0x084 SIO_BASE + INTERP0_ACCUM1: // Read/write access to accumulator 1
+0x088 SIO_BASE + INTERP0_BASE0: // Read/write access to BASE0 register.
+0x08C SIO_BASE + INTERP0_BASE1: // Read/write access to BASE1 register.
+0x090 SIO_BASE + INTERP0_BASE2: // Read/write access to BASE2 register.
+0x094 SIO_BASE + INTERP0_POP_LANE0: // Read LANE0 result, and simultaneously write lane results to both accumulators (POP).
+0x098 SIO_BASE + INTERP0_POP_LANE1: // Read LANE1 result, and simultaneously write lane results to both accumulators (POP).
+0x09C SIO_BASE + INTERP0_POP_FULL: // Read FULL result, and simultaneously write lane results to both accumulators (POP).
+0x0A0 SIO_BASE + INTERP0_PEEK_LANE0: // Read LANE0 result, without altering any internal state (PEEK).
+0x0A4 SIO_BASE + INTERP0_PEEK_LANE1: // Read LANE1 result, without altering any internal state (PEEK).
+0x0A8 SIO_BASE + INTERP0_PEEK_FULL: // Read FULL result, without altering any internal state (PEEK).
+0x0AC SIO_BASE + INTERP0_CTRL_LANE0: // Control register for lane 0
+0x0B0 SIO_BASE + INTERP0_CTRL_LANE1: // Control register for lane 1
+0x0B4 SIO_BASE + INTERP0_ACCUM0_ADD: // Values written here are atomically added to ACCUM0
+0x0B8 SIO_BASE + INTERP0_ACCUM1_ADD: // Values written here are atomically added to ACCUM1
+0x0BC SIO_BASE + INTERP0_BASE_1AND0: // On write, the lower 16 bits go to BASE0, upper bits to BASE1 simultaneously.
+0x0C0 SIO_BASE + INTERP1_ACCUM0: // Read/write access to accumulator 0
+0x0C4 SIO_BASE + INTERP1_ACCUM1: // Read/write access to accumulator 1
+0x0C8 SIO_BASE + INTERP1_BASE0: // Read/write access to BASE0 register.
+0x0CC SIO_BASE + INTERP1_BASE1: // Read/write access to BASE1 register.
+0x0D0 SIO_BASE + INTERP1_BASE2: // Read/write access to BASE2 register.
+0x0D4 SIO_BASE + INTERP1_POP_LANE0: // Read LANE0 result, and simultaneously write lane results to both accumulators (POP).
+0x0D8 SIO_BASE + INTERP1_POP_LANE1: // Read LANE1 result, and simultaneously write lane results to both accumulators (POP).
+0x0DC SIO_BASE + INTERP1_POP_FULL: // Read FULL result, and simultaneously write lane results to both accumulators (POP).
+0x0E0 SIO_BASE + INTERP1_PEEK_LANE0: // Read LANE0 result, without altering any internal state (PEEK).
+0x0E4 SIO_BASE + INTERP1_PEEK_LANE1: // Read LANE1 result, without altering any internal state (PEEK).
+0x0E8 SIO_BASE + INTERP1_PEEK_FULL: // Read FULL result, without altering any internal state (PEEK).
+0x0EC SIO_BASE + INTERP1_CTRL_LANE0: // Control register for lane 0
+0x0F0 SIO_BASE + INTERP1_CTRL_LANE1: // Control register for lane 1
+0x0F4 SIO_BASE + INTERP1_ACCUM0_ADD: // Values written here are atomically added to ACCUM0
+0x0F8 SIO_BASE + INTERP1_ACCUM1_ADD: // Values written here are atomically added to ACCUM1
+0x0FC SIO_BASE + INTERP1_BASE_1AND0: // On write, the lower 16 bits go to BASE0, upper bits to BASE1 simultaneously.
+0x100 SIO_BASE + SPINLOCK0: // Spinlock register 0
+0x104 SIO_BASE + SPINLOCK1: // Spinlock register 1
+0x108 SIO_BASE + SPINLOCK2: // Spinlock register 2
+0x10C SIO_BASE + SPINLOCK3: // Spinlock register 3
+0x110 SIO_BASE + SPINLOCK4: // Spinlock register 4
+0x114 SIO_BASE + SPINLOCK5: // Spinlock register 5
+0x118 SIO_BASE + SPINLOCK6: // Spinlock register 6
+0x11C SIO_BASE + SPINLOCK7: // Spinlock register 7
+0x120 SIO_BASE + SPINLOCK8: // Spinlock register 8
+0x124 SIO_BASE + SPINLOCK9: // Spinlock register 9
+0x128 SIO_BASE + SPINLOCK10: // Spinlock register 10
+0x12C SIO_BASE + SPINLOCK11: // Spinlock register 11
+0x130 SIO_BASE + SPINLOCK12: // Spinlock register 12
+0x134 SIO_BASE + SPINLOCK13: // Spinlock register 13
+0x138 SIO_BASE + SPINLOCK14: // Spinlock register 14
+0x13C SIO_BASE + SPINLOCK15: // Spinlock register 15
+0x140 SIO_BASE + SPINLOCK16: // Spinlock register 16
+0x144 SIO_BASE + SPINLOCK17: // Spinlock register 17
+0x148 SIO_BASE + SPINLOCK18: // Spinlock register 18
+0x14C SIO_BASE + SPINLOCK19: // Spinlock register 19
+0x150 SIO_BASE + SPINLOCK20: // Spinlock register 20
+0x154 SIO_BASE + SPINLOCK21: // Spinlock register 21
+0x158 SIO_BASE + SPINLOCK22: // Spinlock register 22
+0x15C SIO_BASE + SPINLOCK23: // Spinlock register 23
+0x160 SIO_BASE + SPINLOCK24: // Spinlock register 24
+0x164 SIO_BASE + SPINLOCK25: // Spinlock register 25
+0x168 SIO_BASE + SPINLOCK26: // Spinlock register 26
+0x16C SIO_BASE + SPINLOCK27: // Spinlock register 27
+0x170 SIO_BASE + SPINLOCK28: // Spinlock register 28
+0x174 SIO_BASE + SPINLOCK29: // Spinlock register 29
+0x178 SIO_BASE + SPINLOCK30: // Spinlock register 30
+0x17C SIO_BASE + SPINLOCK31: // Spinlock register 31
+
+
+// User Bank IO Registers
+0x40014000 IO_BANK0_BASE:
+
+0X000 IO_BANK0_BASE + GPIO0_STATUS: // GPIO status
+0X004 IO_BANK0_BASE + GPIO0_CTRL: // GPIO control including function select and overrides.
+0X008 IO_BANK0_BASE + GPIO1_STATUS: // GPIO status
+0X00C IO_BANK0_BASE + GPIO1_CTRL: // GPIO control including function select and overrides.
+0X010 IO_BANK0_BASE + GPIO2_STATUS: // GPIO status
+0X014 IO_BANK0_BASE + GPIO2_CTRL: // GPIO control including function select and overrides.
+0X018 IO_BANK0_BASE + GPIO3_STATUS: // GPIO status
+0X01C IO_BANK0_BASE + GPIO3_CTRL: // GPIO control including function select and overrides.
+0X020 IO_BANK0_BASE + GPIO4_STATUS: // GPIO status
+0X024 IO_BANK0_BASE + GPIO4_CTRL: // GPIO control including function select and overrides.
+0X028 IO_BANK0_BASE + GPIO5_STATUS: // GPIO status
+0X02C IO_BANK0_BASE + GPIO5_CTRL: // GPIO control including function select and overrides.
+0X030 IO_BANK0_BASE + GPIO6_STATUS: // GPIO status
+0X034 IO_BANK0_BASE + GPIO6_CTRL: // GPIO control including function select and overrides.
+0X038 IO_BANK0_BASE + GPIO7_STATUS: // GPIO status
+0X03C IO_BANK0_BASE + GPIO7_CTRL: // GPIO control including function select and overrides.
+0X040 IO_BANK0_BASE + GPIO8_STATUS: // GPIO status
+0X044 IO_BANK0_BASE + GPIO8_CTRL: // GPIO control including function select and overrides.
+0X048 IO_BANK0_BASE + GPIO9_STATUS: // GPIO status
+0X04C IO_BANK0_BASE + GPIO9_CTRL: // GPIO control including function select and overrides.
+0X050 IO_BANK0_BASE + GPIO10_STATUS: // GPIO status
+0X054 IO_BANK0_BASE + GPIO10_CTRL: // GPIO control including function select and overrides.
+0X058 IO_BANK0_BASE + GPIO11_STATUS: // GPIO status
+0X05C IO_BANK0_BASE + GPIO11_CTRL: // GPIO control including function select and overrides.
+0X060 IO_BANK0_BASE + GPIO12_STATUS: // GPIO status
+0X064 IO_BANK0_BASE + GPIO12_CTRL: // GPIO control including function select and overrides.
+0X068 IO_BANK0_BASE + GPIO13_STATUS: // GPIO status
+0X06C IO_BANK0_BASE + GPIO13_CTRL: // GPIO control including function select and overrides.
+0X070 IO_BANK0_BASE + GPIO14_STATUS: // GPIO status
+0X074 IO_BANK0_BASE + GPIO14_CTRL: // GPIO control including function select and overrides.
+0X078 IO_BANK0_BASE + GPIO15_STATUS: // GPIO status
+0X07C IO_BANK0_BASE + GPIO15_CTRL: // GPIO control including function select and overrides.
+0X080 IO_BANK0_BASE + GPIO16_STATUS: // GPIO status
+0X084 IO_BANK0_BASE + GPIO16_CTRL: // GPIO control including function select and overrides.
+0X088 IO_BANK0_BASE + GPIO17_STATUS: // GPIO status
+0X08C IO_BANK0_BASE + GPIO17_CTRL: // GPIO control including function select and overrides.
+0X090 IO_BANK0_BASE + GPIO18_STATUS: // GPIO status
+0X094 IO_BANK0_BASE + GPIO18_CTRL: // GPIO control including function select and overrides.
+0X098 IO_BANK0_BASE + GPIO19_STATUS: // GPIO status
+0X09C IO_BANK0_BASE + GPIO19_CTRL: // GPIO control including function select and overrides.
+0X0A0 IO_BANK0_BASE + GPIO20_STATUS: // GPIO status
+0X0A4 IO_BANK0_BASE + GPIO20_CTRL: // GPIO control including function select and overrides.
+0X0A8 IO_BANK0_BASE + GPIO21_STATUS: // GPIO status
+0X0AC IO_BANK0_BASE + GPIO21_CTRL: // GPIO control including function select and overrides.
+0X0B0 IO_BANK0_BASE + GPIO22_STATUS: // GPIO status
+0X0B4 IO_BANK0_BASE + GPIO22_CTRL: // GPIO control including function select and overrides.
+0X0B8 IO_BANK0_BASE + GPIO23_STATUS: // GPIO status
+0X0BC IO_BANK0_BASE + GPIO23_CTRL: // GPIO control including function select and overrides.
+0X0C0 IO_BANK0_BASE + GPIO24_STATUS: // GPIO status
+0X0C4 IO_BANK0_BASE + GPIO24_CTRL: // GPIO control including function select and overrides.
+0X0C8 IO_BANK0_BASE + GPIO25_STATUS: // GPIO status
+0X0CC IO_BANK0_BASE + GPIO25_CTRL: // GPIO control including function select and overrides.
+0X0D0 IO_BANK0_BASE + GPIO26_STATUS: // GPIO status
+0X0D4 IO_BANK0_BASE + GPIO26_CTRL: // GPIO control including function select and overrides.
+0X0D8 IO_BANK0_BASE + GPIO27_STATUS: // GPIO status
+0X0DC IO_BANK0_BASE + GPIO27_CTRL: // GPIO control including function select and overrides.
+0X0E0 IO_BANK0_BASE + GPIO28_STATUS: // GPIO status
+0X0E4 IO_BANK0_BASE + GPIO28_CTRL: // GPIO control including function select and overrides.
+0X0E8 IO_BANK0_BASE + GPIO29_STATUS: // GPIO status
+0X0EC IO_BANK0_BASE + GPIO29_CTRL: // GPIO control including function select and overrides.
+0X0F0 IO_BANK0_BASE + INTR0: // Raw Interrupts
+0X0F4 IO_BANK0_BASE + INTR1: // Raw Interrupts
+0X0F8 IO_BANK0_BASE + INTR2: // Raw Interrupts
+0X0FC IO_BANK0_BASE + INTR3: // Raw Interrupts
+0X100 IO_BANK0_BASE + PROC0_INTE0: // Interrupt Enable for proc0
+0X104 IO_BANK0_BASE + PROC0_INTE1: // Interrupt Enable for proc0
+0X108 IO_BANK0_BASE + PROC0_INTE2: // Interrupt Enable for proc0
+0X10C IO_BANK0_BASE + PROC0_INTE3: // Interrupt Enable for proc0
+0X110 IO_BANK0_BASE + PROC0_INTF0: // Interrupt Force for proc0
+0X114 IO_BANK0_BASE + PROC0_INTF1: // Interrupt Force for proc0
+0X118 IO_BANK0_BASE + PROC0_INTF2: // Interrupt Force for proc0
+0X11C IO_BANK0_BASE + PROC0_INTF3: // Interrupt Force for proc0
+0X120 IO_BANK0_BASE + PROC0_INTS0: // Interrupt status after masking & forcing for proc0
+0X124 IO_BANK0_BASE + PROC0_INTS1: // Interrupt status after masking & forcing for proc0
+0X128 IO_BANK0_BASE + PROC0_INTS2: // Interrupt status after masking & forcing for proc0
+0X12C IO_BANK0_BASE + PROC0_INTS3: // Interrupt status after masking & forcing for proc0
+0X130 IO_BANK0_BASE + PROC1_INTE0: // Interrupt Enable for proc1
+0X134 IO_BANK0_BASE + PROC1_INTE1: // Interrupt Enable for proc1
+0X138 IO_BANK0_BASE + PROC1_INTE2: // Interrupt Enable for proc1
+0X13C IO_BANK0_BASE + PROC1_INTE3: // Interrupt Enable for proc1
+0X140 IO_BANK0_BASE + PROC1_INTF0: // Interrupt Force for proc1
+0X144 IO_BANK0_BASE + PROC1_INTF1: // Interrupt Force for proc1
+0X148 IO_BANK0_BASE + PROC1_INTF2: // Interrupt Force for proc1
+0X14C IO_BANK0_BASE + PROC1_INTF3: // Interrupt Force for proc1
+0X150 IO_BANK0_BASE + PROC1_INTS0: // Interrupt status after masking & forcing for proc1
+0X154 IO_BANK0_BASE + PROC1_INTS1: // Interrupt status after masking & forcing for proc1
+0X158 IO_BANK0_BASE + PROC1_INTS2: // Interrupt status after masking & forcing for proc1
+0X15C IO_BANK0_BASE + PROC1_INTS3: // Interrupt status after masking & forcing for proc1
+0X160 IO_BANK0_BASE + DORMANT_WAKE_INTE0: // Interrupt Enable for dormant_wake
+0X164 IO_BANK0_BASE + DORMANT_WAKE_INTE1: // Interrupt Enable for dormant_wake
+0X168 IO_BANK0_BASE + DORMANT_WAKE_INTE2: // Interrupt Enable for dormant_wake
+0X16C IO_BANK0_BASE + DORMANT_WAKE_INTE3: // Interrupt Enable for dormant_wake
+0X170 IO_BANK0_BASE + DORMANT_WAKE_INTF0: // Interrupt Force for dormant_wake
+0X174 IO_BANK0_BASE + DORMANT_WAKE_INTF1: // Interrupt Force for dormant_wake
+0X178 IO_BANK0_BASE + DORMANT_WAKE_INTF2: // Interrupt Force for dormant_wake
+0X17C IO_BANK0_BASE + DORMANT_WAKE_INTF3: // Interrupt Force for dormant_wake
+0X180 IO_BANK0_BASE + DORMANT_WAKE_INTS0: // Interrupt status after masking & forcing for dormant_wake
+0X184 IO_BANK0_BASE + DORMANT_WAKE_INTS1: // Interrupt status after masking & forcing for dormant_wake
+0X188 IO_BANK0_BASE + DORMANT_WAKE_INTS2: // Interrupt status after masking & forcing for dormant_wake
+0X18C IO_BANK0_BASE + DORMANT_WAKE_INTS3: // Interrupt status after masking & forcing for dormant_wake
+

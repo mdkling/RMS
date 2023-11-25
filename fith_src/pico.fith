@@ -1,0 +1,15 @@
+//  Fith library for the Pico Hardware
+//  M.Kling
+//  Sun Nov  5 00:50:44 EDT 2023
+
+
+// Requires the RP2040 fith SDK
+\#fith_src/pico_sdk.fith
+
+
+
+// User-facing functions
+
+gpio_toggle( io_pin ){ 1 io_pin << GPIO_OUT_XOR ! ^}
+set_high( io_pin ){ 1 io_pin << GPIO_OUT_SET! ^}
+set_low( io_pin ){ 1 io_pin << GPIO_OUT_CLR ! ^}
