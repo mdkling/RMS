@@ -80,7 +80,7 @@ makeNode(u8 *key, u32 keyLen, void *value)
 {
 	Tree *tree;
 	u32      i = 0;
-	tree = malloc(treeSize(keyLen));
+	tree = (Tree*)((((uintptr_t)malloc(treeSize(keyLen)+16))+15)&-16);
 	tree->next[0] = tree->next[1] = &nil;
 	tree->value   = value;
 	tree->level   = 1;
@@ -179,6 +179,8 @@ tree_add(Tree **treep, u8 *key, u32 keyLen, void *value)
 	return 0;
 }
 
+#if 0	// removed because of work around used in makeNode to get an aligned poiner
+	// on 32 bit systems
 // returns value of deleted tree or 0 if none was found
 void*
 tree_del(Tree **treep, u8 *key, u32 keyLen)
@@ -264,6 +266,7 @@ tree_del(Tree **treep, u8 *key, u32 keyLen)
 	}
 	return value;
 }
+#endif
 
 static void tree_destroyr(Tree *root)
 {
@@ -378,6 +381,7 @@ outputSourceCode(u8 *name, u8 *out)
 		start = end + 1;
 		if (endChar == 0) { break; }
 	}
+	free(sourceCode);
 	return out;
 }
 
