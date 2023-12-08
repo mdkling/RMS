@@ -445,6 +445,14 @@ loadRomFuncAddrs(void)
 	rom_func.memset = rom_func_lookup(rom_table_code('M','S'));
 }
 
+static void (*prevFunction)(void);
+void
+registerForLED(void)
+{
+	prevFunction();
+	io_ledToggle();
+}
+
 /*e*/
 void picoInit(void)/*p;*/
 {
@@ -485,9 +493,13 @@ void picoInit(void)/*p;*/
 	rom_func._flash_flush_cache();
 	xipSetup();
 	// we can now read flash addresses
+	
 	// set timer 0 to kick off RMS
 	timer_set(0, 10);
 	io_StreamInit();
+	prevFunction = RMS_get_function(11);
+	RMS_set_function(11, registerForLED);
+	io_printhn((u32)prevFunction);
 	//~ treeTest();
 	// process fith kernel stuff
 	startSysTimer();

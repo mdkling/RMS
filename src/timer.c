@@ -185,96 +185,19 @@ void SDI_3(void)/*p;*/
 
 //~ static u32 timerFlag;
 
-/*e*/
-void RMS_task0(u32 periodCount)/*p;*/ // period*1
-{
-	//~ if (timerFlag++ & 0x100) { io_printin(endSysTimer()); }
-	
-}
-
-/*e*/
-void RMS_task1(void)/*p;*/ // period*2
-{
-	
-}
-
-/*e*/
-void RMS_task2(void)/*p;*/ // period*4
-{
-	// process outputs
-	uart0processOutputs();
-	// process inputs
-	uart0processInputs();
-}
-
-/*e*/
-void RMS_task3(void)/*p;*/  // period*8
-{
-	
-}
-
-//~ u32 RMS_task4_state;
-/*e*/
-void RMS_task4(void)/*p;*/  // period*16
-{
-	//~ if (RMS_task4_state++ != 0) { io_printsn("did not finish!");return; }
-//~ do{
-	//~ io_printsn("t4");
-	//~ for (u32 i = 0; i < 4; i++)
-	//~ {
-		//~ bProgress();
-	//~ }
-	//~ RMS_task4_state--;
-//~ } while (RMS_task4_state != 0);
-}
-
-/*e*/
-void RMS_task5(void)/*p;*/  // period*32
-{
-	
-}
-
-/*e*/
-void RMS_task6(void)/*p;*/  // period*64
-{
-	
-}
-
-/*e*/
-void RMS_task7(void)/*p;*/ // period*128
-{
-	
-}
-
-/*e*/
-void RMS_task8(void)/*p;*/ // period*256
-{
-	//~ io_printin(endSysTimer());
-}
-
-/*e*/
-void RMS_task9(void)/*p;*/ // period*512
-{
-	
-	
-	//~ startSysTimer();
-	//~ u32 *intSet = (void*)PPB_INTERRUPT_SET_PEND;
-	//~ *intSet = (1<<26)|(1<<27)|(1<<28);
-}
-
-/*e*/
-void RMS_task10(void)/*p;*/ // period*1024
-{
-	
-}
+//~ /*e*/
+//~ void RMS_task0(u32 periodCount)/*p;*/ // period*1
+//~ {	
+//~ }
 
 
-/*e*/
-void RMS_task11(void)/*p;*/ // period*2048
-{
-	
-	io_ledToggle();
-}
+//~ void RMS_task2(void)// period*4
+//~ {
+	//~ // process outputs
+	//~ uart0processOutputs();
+	//~ // process inputs
+	//~ uart0processInputs();
+//~ }
 
 
 volatile u32 bCounter;
